@@ -10,5 +10,5 @@ module Main (main) where
 import Lib
 
 main :: IO ()
-main = print $ parseAnyChar "bca" "cdef"
+main = print $ parseOr (parseChar 'a') (parseChar 'b') "xyz"
 
