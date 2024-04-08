@@ -10,5 +10,5 @@ module Main (main) where
 import Lib
 
 main :: IO ()
-main = print $ parseAnd (parseChar 'a') (parseChar 'b') "acd"
+main = print $ parseAndWith  (\ x y -> [x , y ]) (parseChar 'a') (parseChar 'b') "abcd"
 
