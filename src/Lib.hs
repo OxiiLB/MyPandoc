@@ -1,6 +1,11 @@
 module Lib
-    ( someFunc
+    ( parseChar
     ) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+type Parser a = String -> Maybe (a , String )
+
+parseChar :: Char -> Parser Char
+parseChar _ [] = Nothing
+parseChar c (x:xs) = if x == c
+                   then Just (x, xs)
+                   else Nothing
