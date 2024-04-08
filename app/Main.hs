@@ -10,5 +10,5 @@ module Main (main) where
 import Lib
 
 main :: IO ()
-main = print $ parseTuple parseInt "(123,456) foo bar"
+main = print $ parseTuple parseInt "(123,456)foo bar"
 
