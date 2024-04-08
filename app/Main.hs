@@ -7,9 +7,11 @@
 
 module Main (main) where
 
-import ErrorHandling
+import ErrorHandling (checkArgs)
 import Parser
 import Lib
+import System.Environment (getArgs)
+import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
 
 usage :: IO ()
 usage = putStrLn "USAGE: ./mypandoc -i ifile -f oformat [-o ofile] [-e iformat]\
@@ -18,4 +20,8 @@ usage = putStrLn "USAGE: ./mypandoc -i ifile -f oformat [-o ofile] [-e iformat]\
                 \file\n\tiformat\tinput format (xml, json, markdown)"
 
 main :: IO ()
-main = usage
+main = do
+    args <- getArgs
+    case checkArgs args of
+        False -> usage >> exitWith (ExitFailure 84)
+        True -> exitSuccess -------------------------------- place holder
