@@ -29,3 +29,5 @@ imageCompressor
 *.log
 
 *.txt
+
+examples/
