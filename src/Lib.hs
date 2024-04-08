@@ -12,6 +12,7 @@ module Lib
     , parseAnd
     , parseAndWith
     , parseMany
+    , parseSome
     ) where
 
 type Parser a = String -> Maybe (a , String )
@@ -53,4 +54,11 @@ parseMany f s = case f s of
                     Nothing -> Just ([], s)
                     Just (a, s') -> case parseMany f s' of
                         Nothing -> Nothing
+                        Just (as, s'') -> Just (a:as, s'')
+
+parseSome :: Parser a -> Parser [a]
+parseSome f s = case f s of
+                    Nothing -> Nothing
+                    Just (a, s') -> case parseMany f s' of
+                        Nothing -> Just ([a], s')
                         Just (as, s'') -> Just (a:as, s'')

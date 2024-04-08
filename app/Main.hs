@@ -10,5 +10,5 @@ module Main (main) where
 import Lib
 
 main :: IO ()
-main = print $ parseMany (parseChar ' ') "foobar     "
+main = print $ parseSome (parseAnyChar ['0'..'9']) "foobar42"
 
