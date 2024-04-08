@@ -80,7 +80,8 @@ parseInt s = case parseOr (parseAndWith (\_ b -> b) (parseChar '-') parseUInt)
 parseTuple :: Parser a -> Parser (a, a)
 parseTuple f s = case parseChar '(' s of
                     Nothing -> Nothing
-                    Just (_,y) -> case parseAndWith (\a (_, b) -> (a, b)) f (parseAnd (parseChar ',') f) y of
+                    Just (_,y) -> case parseAndWith (\a (_, b) -> (a, b)) f
+                        (parseAnd (parseChar ',') f) y of
                         Nothing -> Nothing
                         Just (a, res) -> case parseChar ')' res of
                             Nothing -> Nothing
