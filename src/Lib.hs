@@ -9,20 +9,24 @@ module Lib
     ( parseChar
     , runParser
     , parseAnyChar
-    -- , parseOr
-    -- , parseAnd
-    -- , parseAndWith
-    -- , parseMany
-    -- , parseSome
-    -- , parseUInt
-    -- , parseInt
+    , parseOr
+    , parseAnd
+    , parseAndWith
+    , parseMany
+    , parseSome
+    , parseUInt
+    , parseInt
     -- , parseTuple
     ) where
-import GHC.Conc (par)
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a , String )
 }
+
+instance Functor Parser where
+    fmap fct parser = Parser $ \s -> case runParser parser s of
+        Nothing -> Nothing
+        Just (a, rest) -> Just (fct a, rest)
 
 parseChar :: Char -> Parser Char
 parseChar c = Parser $ \s -> case s of
@@ -71,10 +75,18 @@ parseSome f = Parser $ \s -> case runParser f s of
         Nothing -> Just ([a], rest)
         Just (as, c) -> Just (a:as, c)
 
+-- STEP 2.2 <$>
 parseInt :: Parser Int
-parseInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
-    Nothing -> Nothing
-    Just (as, rest) -> Just (read as, rest)
+parseInt = read <$> parseSome (parseAnyChar ['0'..'9'])
+
+-- STEP 2.2 FMAP
+-- parseInt :: Parser Int
+-- parseInt = fmap read (parseSome (parseAnyChar ['0'..'9']))
+
+-- parseInt :: Parser Int
+-- parseInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
+--     Nothing -> Nothing
+--     Just (as, rest) -> Just (read as, rest)
 
 parseUInt :: Parser Int
 parseUInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
