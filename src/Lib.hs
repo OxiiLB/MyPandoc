@@ -16,12 +16,23 @@ module Lib
     , parseSome
     , parseUInt
     , parseInt
-    -- , parseTuple
+    , parseTuple
     ) where
+import Control.Applicative()
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a , String )
 }
+
+
+instance Applicative Parser where
+    pure x = Parser $ \s -> Just (x, s)
+    pf <*> px = Parser $ \s -> case runParser pf s of
+        Nothing -> Nothing
+        Just (f, rest) -> case runParser px rest of
+            Nothing -> Nothing
+            Just (x, rest') -> Just (f x, rest')
+
 
 instance Functor Parser where
     fmap fct parser = Parser $ \s -> case runParser parser s of
@@ -54,12 +65,16 @@ parseAnd f1 f2 = Parser $ \s -> case runParser f1 s of
         Nothing -> Nothing
         Just (b, c) -> Just ((a, b), c)
 
+-- STEP 2.3
 parseAndWith :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
-parseAndWith f f1 f2 = Parser $ \s -> case runParser f1 s of
-    Nothing -> Nothing
-    Just (a, rest) -> case runParser f2 rest of
-        Nothing -> Nothing
-        Just (b, c) -> Just (f a b, c)
+parseAndWith f f1 f2 = f <$> f1 <*> f2
+
+-- parseAndWith :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+-- parseAndWith f f1 f2 = Parser $ \s -> case runParser f1 s of
+--     Nothing -> Nothing
+--     Just (a, rest) -> case runParser f2 rest of
+--         Nothing -> Nothing
+--         Just (b, c) -> Just (f a b, c)
 
 parseMany :: Parser a -> Parser [a]
 parseMany f = Parser $ \s -> case runParser f s of
@@ -68,14 +83,18 @@ parseMany f = Parser $ \s -> case runParser f s of
         Nothing -> Nothing
         Just (as, c) -> Just (a:as, c)
 
+-- STEP 2.3
 parseSome :: Parser a -> Parser [a]
-parseSome f = Parser $ \s -> case runParser f s of
-    Nothing -> Nothing
-    Just (a, rest) -> case runParser (parseMany f) rest of
-        Nothing -> Just ([a], rest)
-        Just (as, c) -> Just (a:as, c)
+parseSome f = (:) <$> f <*> parseMany f
 
--- STEP 2.2 <$>
+-- parseSome :: Parser a -> Parser [a]
+-- parseSome f = Parser $ \s -> case runParser f s of
+--     Nothing -> Nothing
+--     Just (a, rest) -> case runParser (parseMany f) rest of
+--         Nothing -> Just ([a], rest)
+--         Just (as, c) -> Just (a:as, c)
+
+-- STEP 2.2 and 2.3 <$>
 parseInt :: Parser Int
 parseInt = read <$> parseSome (parseAnyChar ['0'..'9'])
 
@@ -92,6 +111,10 @@ parseUInt :: Parser Int
 parseUInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
     Nothing -> Nothing
     Just (as, rest) -> Just (read as, rest)
+
+-- STEP 2.3
+parseTuple :: Parser a -> Parser (a, a)
+parseTuple f = (,) <$> f <* parseChar ',' <*> f
 
 -- parseTuple :: Parser a -> Parser (a, a)
 -- parseTuple f s = case parseChar '(' s of
