@@ -4,6 +4,7 @@
 -- File description:
 -- Lib
 --}
+{-# LANGUAGE InstanceSigs #-}
 
 module Lib
     ( parseChar
@@ -20,11 +21,25 @@ module Lib
     ) where
 import Control.Applicative()
 import Control.Applicative (Alternative(..))
+import Control.Monad (ap)
 
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a , String )
 }
+
+instance Monad Parser where
+    return = pure
+    p >>= f = Parser $ \s -> case runParser p s of
+        Nothing -> Nothing
+        Just (a, rest) -> runParser (f a) rest
+
+-- Define `ap` for Parser to avoid orphan instances
+instance Applicative Parser where
+    pure x = Parser $ \s -> Just (x, s)
+    (<*>) = ap
+
+
 
 instance Alternative Parser where
     empty = Parser $ const Nothing
@@ -33,13 +48,13 @@ instance Alternative Parser where
         Just (a, rest) -> Just (a, rest)
 
 
-instance Applicative Parser where
-    pure x = Parser $ \s -> Just (x, s)
-    pf <*> px = Parser $ \s -> case runParser pf s of
-        Nothing -> Nothing
-        Just (f, rest) -> case runParser px rest of
-            Nothing -> Nothing
-            Just (x, rest') -> Just (f x, rest')
+-- instance Applicative Parser where
+--     pure x = Parser $ \s -> Just (x, s)
+--     pf <*> px = Parser $ \s -> case runParser pf s of
+--         Nothing -> Nothing
+--         Just (f, rest) -> case runParser px rest of
+--             Nothing -> Nothing
+--             Just (x, rest') -> Just (f x, rest')
 
 
 instance Functor Parser where
@@ -126,9 +141,22 @@ parseUInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) 
     Nothing -> Nothing
     Just (as, rest) -> Just (read as, rest)
 
+-- STEP 2.5
+parseTuple :: Parser (Int, Int, Int)
+parseTuple = do
+    parseChar '('
+    a <- parseInt
+    parseChar ','
+    b <- parseInt
+    parseChar ','
+    c <- parseInt
+    parseChar ')'
+    return (a, b, c)
+
+
 -- STEP 2.3
-parseTuple :: Parser a -> Parser (a, a)
-parseTuple f = (,) <$> f <* parseChar ',' <*> f
+-- parseTuple :: Parser a -> Parser (a, a)
+-- parseTuple f = (,) <$> f <* parseChar ',' <*> f
 
 -- parseTuple :: Parser a -> Parser (a, a)
 -- parseTuple f s = case parseChar '(' s of
