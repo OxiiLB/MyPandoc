@@ -19,10 +19,18 @@ module Lib
     , parseTuple
     ) where
 import Control.Applicative()
+import Control.Applicative (Alternative(..))
+
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a , String )
 }
+
+instance Alternative Parser where
+    empty = Parser $ const Nothing
+    p1 <|> p2 = Parser $ \s -> case runParser p1 s of
+        Nothing -> runParser p2 s
+        Just (a, rest) -> Just (a, rest)
 
 
 instance Applicative Parser where
@@ -76,12 +84,18 @@ parseAndWith f f1 f2 = f <$> f1 <*> f2
 --         Nothing -> Nothing
 --         Just (b, c) -> Just (f a b, c)
 
+-- STEP 2.4
 parseMany :: Parser a -> Parser [a]
-parseMany f = Parser $ \s -> case runParser f s of
-    Nothing -> Just ([], s)
-    Just (a, rest) -> case runParser (parseMany f) rest of
-        Nothing -> Nothing
-        Just (as, c) -> Just (a:as, c)
+parseMany f = someOrNone
+    where
+        someOrNone = (:) <$> f <*> parseMany f <|> pure []
+
+-- parseMany :: Parser a -> Parser [a]
+-- parseMany f = Parser $ \s -> case runParser f s of
+--     Nothing -> Just ([], s)
+--     Just (a, rest) -> case runParser (parseMany f) rest of
+--         Nothing -> Nothing
+--         Just (as, c) -> Just (a:as, c)
 
 -- STEP 2.3
 parseSome :: Parser a -> Parser [a]
@@ -94,7 +108,7 @@ parseSome f = (:) <$> f <*> parseMany f
 --         Nothing -> Just ([a], rest)
 --         Just (as, c) -> Just (a:as, c)
 
--- STEP 2.2 and 2.3 <$>
+-- STEP 2.2 and 2.3 and 2.4 <$>
 parseInt :: Parser Int
 parseInt = read <$> parseSome (parseAnyChar ['0'..'9'])
 
