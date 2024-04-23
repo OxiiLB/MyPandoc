@@ -8,8 +8,8 @@
 module Main (main) where
 
 import ErrorHandling (checkArgs)
-import Parser
-import Lib
+import Parser()
+import Lib()
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
 
