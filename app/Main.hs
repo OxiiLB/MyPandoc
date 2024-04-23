@@ -9,5 +9,13 @@ module Main (main) where
 
 import Lib
 
+-- Main function to test the JSON parser
 main :: IO ()
-main = print $ runParser (parseChar 'a') "abc"
+main = do
+    putStrLn $ "Simple JSON Example: " ++ simpleJsonExample
+    putStrLn "Parsing the simple JSON example..."
+    case runParser parseJsonValue simpleJsonExample of
+        Just (jsonValue, _) -> do
+            putStrLn "Parsing successful!"
+            putStrLn $ "Parsed result: " ++ show jsonValue
+        Nothing -> putStrLn "Failed to parse JSON"
