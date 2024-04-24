@@ -1,13 +1,12 @@
 module Lib
     ( runParser
-    , printParsedResult
     , parseJsonValue
-    , simpleJsonExample
     , parseString
     ) where
 
 import Control.Applicative (Alternative(..))
 import Parser
+import Control.Monad (void)
 
 -- Define your JsonValue data type
 data JsonValue
@@ -17,9 +16,6 @@ data JsonValue
     | JsonArray [JsonValue]
     | JsonObject [(String, JsonValue)]
     deriving (Show)
-
-deleteSpaces :: Parser String
-deleteSpaces = parseChar ' ' *> parseString
 
 -- zsefzelndezjdzednlzjed
 parseString :: Parser String
@@ -33,26 +29,20 @@ parseString = parseChar '"' *> many (parseAnyChar
 
 createJsonArray :: Parser [JsonValue]
 createJsonArray = parseChar '[' *>
-    deleteSpaces *> parseJsonValue  <* deleteSpaces
+    skipAll *> parseCommaSeparated parseJsonValue  <* skipAll
     <* parseChar ']'
 
 -- Parse JSON array value
 parseJsonArray :: Parser JsonValue
 parseJsonArray = JsonArray <$> createJsonArray
 
-createJsonObject :: Parser [(String, JsonValue)]
-createJsonObject = parseChar '{' *> parseString `parseAnd` (parseChar ':' *> parseJsonValue) `parseAnd` many (parseChar ',' *> parseString `parseAnd` (parseChar ':' *> parseJsonValue)) <* parseChar '}'
-
-parseJsonObject :: Parser JsonValue
-parseJsonObject = JsonObject <$> createJsonObject
+-- Parse JSON string value
+parseJsonString :: Parser JsonValue
+parseJsonString = JsonString <$> parseString
 
 -- Complete JSON value parser
 parseJsonValue :: Parser JsonValue
-parseJsonValue =  deleteSpaces <|> parseJsonArray <|> parseJsonObject
-
--- Define simpleJsonExample
-simpleJsonExample :: String
-simpleJsonExample = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}"
+parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString
 
 skipAll :: Parser ()
 skipAll = void $ many $ parseAnyChar " \n\r\t"
@@ -61,12 +51,3 @@ skipAll = void $ many $ parseAnyChar " \n\r\t"
 parseCommaSeparated :: Parser a -> Parser [a]
 parseCommaSeparated p =
   (:) <$> p <*> many (skipAll *> parseChar ',' *> skipAll *> p) <|> pure []
-
--- Define printParsedResult function
-printParsedResult :: Show a => Parser a -> IO ()
-printParsedResult parser =
-    case runParser parser simpleJsonExample of
-        Just (jsonValue, remaining) -> do
-            putStrLn $ "Parsed result: " ++ show jsonValue
-            putStrLn $ "Remaining input: " ++ remaining
-        Nothing -> putStrLn "Failed to parse"
