@@ -8,7 +8,7 @@
 module Main (main) where
 
 import ErrorHandling (checkArgs)
-import Parser(getInputFile, getInfoArgs)
+import GetInfo(getInputFile, getInfoArgs)
 import Lib(parseFile, defaultInfo)
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(ExitFailure))
