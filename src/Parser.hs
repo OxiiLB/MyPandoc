@@ -18,6 +18,7 @@ module Parser
     , parseUInt
     , parseInt
     , parseTuple
+    , Parser(..)
     ) where
 import Control.Applicative()
 import Control.Applicative (Alternative(..))
@@ -39,23 +40,11 @@ instance Applicative Parser where
     pure x = Parser $ \s -> Just (x, s)
     (<*>) = ap
 
-
-
 instance Alternative Parser where
-    empty = Parser $ const Nothing
-    p1 <|> p2 = Parser $ \s -> case runParser p1 s of
-        Nothing -> runParser p2 s
-        Just (a, rest) -> Just (a, rest)
-
-
--- instance Applicative Parser where
---     pure x = Parser $ \s -> Just (x, s)
---     pf <*> px = Parser $ \s -> case runParser pf s of
---         Nothing -> Nothing
---         Just (f, rest) -> case runParser px rest of
---             Nothing -> Nothing
---             Just (x, rest') -> Just (f x, rest')
-
+  empty = Parser $ const Nothing
+  p1 <|> p2 = Parser $ \s -> runParser (parseOr p1 p2) s
+  many p = Parser $ \s -> runParser (parseMany p) s
+  some p = Parser $ \s -> runParser (parseSome p) s
 
 instance Functor Parser where
     fmap fct parser = Parser $ \s -> case runParser parser s of

@@ -1,10 +1,1 @@
-{
-    "bool": true,
-    "foo": 42,
-    "bar": 3.14,
-    "baz": [1, 2, 3],
-    "qux": {
-        "foo": "bar",
-        "baz": null
-    }
-}
+{"bool": "true","foo": "42","bar": "3.14"}

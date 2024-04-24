@@ -7,7 +7,6 @@
 
 module Main (main) where
 import System.Environment (getArgs)
-import System.IO (readFile)
 import Lib
 
 -- Read JSON content from file
