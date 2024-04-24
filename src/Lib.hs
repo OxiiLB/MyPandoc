@@ -14,6 +14,7 @@ module Lib
 import Control.Applicative (Alternative(..), optional)
 import Data.Char (chr)
 import Numeric (readHex)
+import Parser
 
 -- Define your Parser type and its associated functions here
 newtype Parser a = Parser {
