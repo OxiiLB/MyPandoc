@@ -129,9 +129,6 @@ parseJsonArray = JsonArray <$> (char '[' *> parseJsonValue `sepBy` char ',' <* c
   where
     char c = satisfy (== c)
 
-    sepBy :: Parser a -> Parser b -> Parser [a]
-    sepBy p sep = ((:) <$> p <*> many (sep *> p)) <|> pure []
-
 -- Parse JSON object value
 parseJsonObject :: Parser JsonValue
 parseJsonObject = JsonObject <$> (char '{' *> parsePair `sepBy` char ',' <* char '}')
