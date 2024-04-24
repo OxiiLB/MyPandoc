@@ -28,6 +28,7 @@ library
       ErrorHandling
       GetInfo
       Lib
+      Parsing
   other-modules:
       Paths_mypandoc
   autogen-modules:

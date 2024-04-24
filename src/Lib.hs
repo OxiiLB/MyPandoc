@@ -16,6 +16,7 @@ module Lib
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
+import Parsing(parseXmlFile)
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
@@ -43,5 +44,5 @@ parseFile (Just file) info = -- will send file to functions, but for now, im jus
     Just format ->
       case format of
         JSON -> putStrLn "JSON" >> exitSuccess
-        XML -> putStrLn "XML" >> exitSuccess
+        XML -> parseXmlFile file >> exitSuccess
         Markdown -> putStrLn "Markdown" >> exitSuccess
