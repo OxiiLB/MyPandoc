@@ -21,7 +21,7 @@ newtype Parser a = Parser {
 }
 
 instance Functor Parser where
-    fmap f (Parser p) = Parser $ \input -> do
+    fmap f (Parser p) = Parser $    \input -> do
         (x, rest) <- p input
         pure (f x, rest)
 
@@ -139,7 +139,6 @@ parseJsonObject = JsonObject <$> (char '{' *> parsePair `sepBy` char ',' <* char
     char c = satisfy (== c)
 
     parsePair = liftA2 (,) (parseQuotedString <* char ':') parseJsonValue
-
 
 -- Complete JSON value parser
 parseJsonValue :: Parser JsonValue
