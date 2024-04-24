@@ -8,10 +8,10 @@
 module Main (main) where
 
 import ErrorHandling (checkArgs)
-import Parser()
-import Lib()
+import Parser(getInputFile, getInfoArgs)
+import Lib(parseFile, defaultInfo)
 import System.Environment (getArgs)
-import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
+import System.Exit (exitWith, ExitCode(ExitFailure))
 
 usage :: IO ()
 usage = putStrLn "USAGE: ./mypandoc -i ifile -f oformat [-o ofile] [-e iformat]\
@@ -24,4 +24,9 @@ main = do
     args <- getArgs
     case checkArgs args of
         False -> usage >> exitWith (ExitFailure 84)
-        True -> exitSuccess -------------------------------- place holder
+        True -> do
+            maybeFile <- getInputFile args
+            case maybeFile of
+                Nothing -> exitWith (ExitFailure 84)
+                Just file -> parseFile (Just file)
+                    (getInfoArgs args defaultInfo)

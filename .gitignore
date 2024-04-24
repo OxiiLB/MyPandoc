@@ -32,3 +32,5 @@ cabal.project.local~
 examples/
 
 mypandoc
+
+syntaxe.*
