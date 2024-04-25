@@ -5,11 +5,8 @@
 -- XmlParser
 --}
 
-module XmlParser(
-    parseXmlValue
-)where
+module Xml
+        (
 
+    ) where
 import Parser
-
-parseXmlValue :: Parser XmlValue
-parseXmlValue = parseXmlString <|> parseXmlArray <|> parseXmlObject
