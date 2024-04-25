@@ -15,15 +15,6 @@ import Control.Applicative (Alternative(..))
 import Parser
 import Control.Monad (void)
 
--- Define your JsonValue data type
-data JsonValue
-    = JsonNull
-    | JsonBool Bool
-    | JsonString String
-    | JsonArray [JsonValue]
-    | JsonObject [(String, JsonValue)]
-    deriving (Show)
-
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
             (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
