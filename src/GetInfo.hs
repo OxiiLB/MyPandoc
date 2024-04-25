@@ -18,9 +18,9 @@ import Data.Maybe ()
 import Lib (Format(..), Info(..))
 
 stringToFormat :: String -> Maybe Format
-stringToFormat "JSON" = Just JSON
-stringToFormat "XML" = Just XML
-stringToFormat "Markdown" = Just Markdown
+stringToFormat "json" = Just JSON
+stringToFormat "xml" = Just XML
+stringToFormat "markdown" = Just Markdown
 stringToFormat _ = Nothing
 
 getInfoArgs :: [String] -> Info -> Info
