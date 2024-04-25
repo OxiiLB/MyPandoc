@@ -54,9 +54,7 @@ instance Functor Parser where
 
 -- Define your ParserValue data type
 data ParserValue
-    = ParserNull
-    | ParserBool Bool
-    | ParserString String
+    = ParserString String
     | ParserArray [ParserValue]
     | ParserObject [(String, ParserValue)]
     deriving (Show)
