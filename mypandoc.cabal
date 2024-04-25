@@ -29,8 +29,6 @@ library
       GetInfo
       JsonParser
       Lib
-      OutputJson
-      OutputXml
       Parser
       XmlParser
   other-modules:

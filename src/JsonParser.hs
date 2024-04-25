@@ -14,6 +14,7 @@ module JsonParser
 import Control.Applicative (Alternative(..))
 import Parser
 import Control.Monad (void)
+import GHC.Conc (par)
 
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
@@ -24,14 +25,40 @@ parseString = parseChar '"' *> many (parseAnyChar
                ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
               <* parseChar '"'
 
-createJsonArray :: Parser [ParserValue]
-createJsonArray = parseChar '[' *>
-    skipAll *> parseCommaSeparated parseJsonValue <* skipAll
-    <* parseChar ']'
+-- createJsonArray :: Parser [ParserValue]
+-- createJsonArray = parseChar '[' *>
+--     skipAll *> parseCommaSeparated parseJsonValue <* skipAll
+--     <* parseChar ']'
 
--- Parse JSON array value
-parseJsonArray :: Parser ParserValue
-parseJsonArray = ParserArray <$> createJsonArray
+-- parseJsonArray :: Parser ParserValue
+-- parseJsonArray = ParserArray <$> createJsonArray
+
+parseItalic :: Parser String
+parseItalic = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'i' *>
+    parseChar('t') *> parseChar('a') *> parseChar('l') *> parseChar('i') *>
+    parseChar('c') <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseString <* skipAll <* parseChar '}' <* skipAll
+
+parserJsonItalic :: Parser ParserValue
+parserJsonItalic = ParserItalic <$> parseItalic
+
+parseBold :: Parser String
+parseBold = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'b' *>
+    parseChar('o') *> parseChar('l') *> parseChar('d') <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
+    <* skipAll
+
+parserJsonBold :: Parser ParserValue
+parserJsonBold = ParserBold <$> parseBold
+
+parseCode :: Parser String
+parseCode = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'c' *>
+    parseChar('o') *> parseChar('d') *> parseChar('e') <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
+    <* skipAll
+
+parserJsonCode :: Parser ParserValue
+parserJsonCode = ParserCode <$> parseCode
 
 -- Parse JSON string value
 parseJsonString :: Parser ParserValue
@@ -45,9 +72,8 @@ parseJsonObject = ParserObject <$> (parseChar '{' *> skipAll *>
 
 -- Complete JSON value parser
 parseJsonValue :: Parser ParserValue
-parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString <|>
-    parseJsonObject
-
+parseJsonValue = skipAll *> parseJsonString <|> parserJsonItalic <|> 
+    parserJsonCode <|> parserJsonBold <|> parseJsonObject
 
 skipAll :: Parser ()
 skipAll = void $ many $ parseAnyChar " \n\r\t"
