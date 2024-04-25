@@ -14,8 +14,11 @@ module Lib
     ) where
 
 import Parser
-import JsonParser
-import OutputJson
+import JsonParser ( parseJsonValue )
+import XmlParser ()
+import OutputJson ( writeJsonFile )
+import OutputMarkdown ( writeMarkdownFile )
+import OutputXml (writeXmlFile)
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
@@ -47,8 +50,16 @@ sendToParser file info format =
                 writeJsonFile (outputFile info) parsedJson
             Nothing -> putStrLn "Error: Invalid JSON file"
                 >> exitWith (ExitFailure 84)
-        XML -> putStrLn "XML parsing logic goes here"
-        Markdown -> putStrLn "Markdown parsing logic goes here"
+        XML -> case runParser parseAllType file of
+            Just (parsedXml, remaining) ->
+                writeXmlFile (outputFile info) parsedXml
+            Nothing -> putStrLn "Error: Invalid XML file"
+                >> exitWith (ExitFailure 84)
+        Markdown -> case runParser parseAllType file of
+            Just (parsedMarkdown, remaining) ->
+                writeMarkdownFile (outputFile info) parsedMarkdown
+            Nothing -> putStrLn "Error: Invalid Markdown file"
+                >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)

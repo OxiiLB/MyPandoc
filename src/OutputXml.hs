@@ -38,6 +38,6 @@ escapeXml = concatMap escapeChar
         escapeChar c = [c]
 
 
-writeXmlFile :: FilePath -> ParserValue -> IO ()
-writeXmlFile path value =
-    writeFile path ("<document>\n" ++ toXml value 0 ++ "\n</document>")
+writeXmlFile :: Maybe FilePath -> ParserValue -> IO ()
+writeXmlFile Nothing _ = putStrLn "No file path provided."
+writeXmlFile (Just path) value = writeFile path (toXml value 0)
