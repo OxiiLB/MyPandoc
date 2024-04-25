@@ -5,8 +5,10 @@
 -- XmlParser
 --}
 
-module Xml
+module XmlParser
         (
 
     ) where
+
 import Parser
+

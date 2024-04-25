@@ -25,7 +25,12 @@ source-repository head
 
 library
   exposed-modules:
+      ErrorHandling
+      GetInfo
       JsonParser
+      Lib
+      OutputJson
+      OutputXml
       Parser
       XmlParser
   other-modules:

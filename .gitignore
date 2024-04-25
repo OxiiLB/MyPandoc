@@ -28,4 +28,9 @@ cabal.project.local~
 *.log
 
 *.txt
+
+examples/
+
 mypandoc
+
+syntaxe.*
