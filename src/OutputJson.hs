@@ -28,5 +28,6 @@ toJson (ParserObject obj) level =
                 toJson v (level + 1)) obj
 
 
-writeJsonFile :: FilePath -> ParserValue -> IO ()
-writeJsonFile path value = writeFile path (toJson value 0)
+writeJsonFile :: Maybe FilePath -> ParserValue -> IO ()
+writeJsonFile Nothing _ = putStrLn "No file path provided."
+writeJsonFile (Just path) value = writeFile path (toJson value 0)
