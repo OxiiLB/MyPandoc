@@ -13,7 +13,6 @@ module GetInfo
 
 import System.Environment()
 import System.IO()
-import System.Directory()
 import Control.Exception
 import Data.Maybe ()
 import Lib (Format(..), Info(..))
