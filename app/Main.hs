@@ -6,27 +6,29 @@
 --}
 
 module Main (main) where
-
-import ErrorHandling (checkArgs)
-import GetInfo(getInputFile, getInfoArgs)
-import Lib(parseFile, defaultInfo)
 import System.Environment (getArgs)
-import System.Exit (exitWith, ExitCode(ExitFailure))
+import JsonParser
 
-usage :: IO ()
-usage = putStrLn "USAGE: ./mypandoc -i ifile -f oformat [-o ofile] [-e iformat]\
-                \\n\n\tifile\tpath to the file to convert\n\toformat\toutput \
-                \format (xml, json, markdown)\n\tofile\tpath to the output \
-                \file\n\tiformat\tinput format (xml, json, markdown)"
+-- Read JSON content from file
+readJSONFile :: FilePath -> IO String
+readJSONFile filePath = readFile filePath
 
+-- Main function to test the JSON parser
 main :: IO ()
 main = do
     args <- getArgs
-    case checkArgs args of
-        False -> usage >> exitWith (ExitFailure 84)
-        True -> do
-            maybeFile <- getInputFile args
-            case maybeFile of
-                Nothing -> exitWith (ExitFailure 84)
-                Just file -> parseFile (Just file)
-                    (getInfoArgs args defaultInfo)
+    case args of
+        [filePath] -> do
+            putStrLn $ "Parsing the JSON file: " ++ filePath
+            jsonContent <- readJSONFile filePath
+            putStrLn "Read the file contents:"
+            putStrLn jsonContent
+            putStrLn "Parsing the JSON text..."
+            case runParser parseJsonValue jsonContent of
+                Just (parsedJson, remaining) -> do
+                    putStrLn "Parsed result:"
+                    print parsedJson
+                    putStrLn "Remaining input:"
+                    putStrLn remaining
+                Nothing -> putStrLn "Failed to parse JSON"
+        _ -> putStrLn "Please provide the path to the JSON file as a command-line argument"

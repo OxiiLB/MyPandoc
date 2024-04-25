@@ -27,8 +27,10 @@ library
   exposed-modules:
       ErrorHandling
       GetInfo
+      JsonParser
       Lib
-      Parsing
+      Parser
+      XmlParser
   other-modules:
       Paths_mypandoc
   autogen-modules:
