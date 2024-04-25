@@ -8,13 +8,11 @@
 module JsonParser
     ( runParser
     , parseJsonValue
-    , parseString
     ) where
 
 import Control.Applicative (Alternative(..))
 import Parser
 import Control.Monad (void)
-import GHC.Conc (par)
 
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
@@ -35,8 +33,8 @@ parseString = parseChar '"' *> many (parseAnyChar
 
 parseItalic :: Parser String
 parseItalic = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'i' *>
-    parseChar('t') *> parseChar('a') *> parseChar('l') *> parseChar('i') *>
-    parseChar('c') <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseChar 't' *> parseChar 'a' *> parseChar 'l' *> parseChar 'i' *>
+    parseChar 'c' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
     parseString <* skipAll <* parseChar '}' <* skipAll
 
 parserJsonItalic :: Parser ParserValue
@@ -44,7 +42,7 @@ parserJsonItalic = ParserItalic <$> parseItalic
 
 parseBold :: Parser String
 parseBold = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'b' *>
-    parseChar('o') *> parseChar('l') *> parseChar('d') <* parseChar '\"' *>
+    parseChar 'o'  *> parseChar 'l' *> parseChar 'd' <* parseChar '\"' *>
     skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
     <* skipAll
 
@@ -53,7 +51,7 @@ parserJsonBold = ParserBold <$> parseBold
 
 parseCode :: Parser String
 parseCode = parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'c' *>
-    parseChar('o') *> parseChar('d') *> parseChar('e') <* parseChar '\"' *>
+    parseChar 'o' *> parseChar 'd' *> parseChar 'e' <* parseChar '\"' *>
     skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
     <* skipAll
 
