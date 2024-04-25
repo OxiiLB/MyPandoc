@@ -39,22 +39,22 @@ detectFormat (Just file)
     | ".md" `isSuffixOf` file || ".markdown" `isSuffixOf` file = Just Markdown
     | otherwise = Nothing
 
+sendToParser :: String -> Info -> Format -> IO ()
+sendToParser file info format =
+    case format of
+        JSON -> case runParser parseAllType file of
+            Just (parsedJson, remaining) ->
+                writeJsonFile (outputFile info) parsedJson
+            Nothing -> putStrLn "Error: Invalid JSON file"
+                >> exitWith (ExitFailure 84)
+        XML -> putStrLn "XML parsing logic goes here"
+        Markdown -> putStrLn "Markdown parsing logic goes here"
+
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
 parseFile (Just file) info | isNothing (inputFormat info) =
     parseFile (Just file) (info { inputFormat = detectFormat (filePath info) })
-parseFile (Just file) info = -- will send file to functions, but for now, im just using exitSuccess as a placeholder
-  case outputFormat info of
-    Nothing -> exitWith (ExitFailure 84)
-    Just JSON -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> writeJsonFile (outputFile info) parsedJson
-        Nothing -> putStrLn "Error: Invalid JSON file"
-        >> exitWith (ExitFailure 84)
-    Just XML -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> writeJsonFile (outputFile info) parsedJson
-        Nothing -> putStrLn "Error: Invalid XML file"
-        >> exitWith (ExitFailure 84)
-    Just Markdown -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> writeJsonFile (outputFile info) parsedJson
-        Nothing -> putStrLn "Error: Invalid Markdown file"
-        >> exitWith (ExitFailure 84)
+parseFile (Just file) info =
+    case outputFormat info of
+        Nothing -> exitWith (ExitFailure 84)
+        Just format -> sendToParser file info format
