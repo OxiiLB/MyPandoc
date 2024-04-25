@@ -16,7 +16,8 @@ toMarkdown :: ParserValue -> Int -> String
 toMarkdown (ParserString s) _ = "---\n" ++ s ++ "\n---\n"
 toMarkdown (ParserArray arr) _ = intercalate "\n" $ map (\v -> "- " ++ toMarkdown v 0) arr
 toMarkdown (ParserObject obj) level = intercalate "\n" $ map (\(k, v) ->
-    replicate (level * 4) ' ' ++ "- " ++ k ++ ":\n" ++ toMarkdown v (level + 1)) obj
+    replicate (level * 4) ' ' ++ "- " ++ k ++ ":\n"
+        ++ toMarkdown v (level + 1)) obj
 
 
 writeMarkdownFile :: Maybe FilePath -> ParserValue -> IO ()
