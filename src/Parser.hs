@@ -52,7 +52,6 @@ data ParserValue
     | ParserItalic String
     | ParserBold String
     | ParserCode String
-    | ParserItem (String, ParserValue)
     | ParserLink (String, ParserValue)
     | ParserImage (String, ParserValue)
     | ParserList [ParserValue]
@@ -61,6 +60,7 @@ data ParserValue
     | ParserParagraphe [ParserValue]
     | ParserHead [ParserValue]
     | ParserBody [ParserValue]
+    | ParserArray [ParserValue]
     | ParserObject [(String, ParserValue)]
     deriving (Show)
 
