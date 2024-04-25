@@ -7,7 +7,7 @@
 
 module Main (main) where
 import System.Environment (getArgs)
-import Lib
+import JsonParser
 
 -- Read JSON content from file
 readJSONFile :: FilePath -> IO String

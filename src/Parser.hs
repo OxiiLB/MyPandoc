@@ -19,7 +19,7 @@ module Parser
     , parseInt
     , parseTuple
     , Parser(..)
-    , JsonValue(..)
+    , ParserValue(..)
     ) where
 import Control.Applicative()
 import Control.Applicative (Alternative(..))
@@ -52,13 +52,13 @@ instance Functor Parser where
         Nothing -> Nothing
         Just (a, rest) -> Just (fct a, rest)
 
--- Define your JsonValue data type
-data JsonValue
-    = JsonNull
-    | JsonBool Bool
-    | JsonString String
-    | JsonArray [JsonValue]
-    | JsonObject [(String, JsonValue)]
+-- Define your ParserValue data type
+data ParserValue
+    = ParserNull
+    | ParserBool Bool
+    | ParserString String
+    | ParserArray [ParserValue]
+    | ParserObject [(String, ParserValue)]
     deriving (Show)
 
 parseChar :: Char -> Parser Char

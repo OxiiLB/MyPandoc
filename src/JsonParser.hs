@@ -2,10 +2,10 @@
 -- EPITECH PROJECT, 2024
 -- MyPandoc
 -- File description:
--- Lib
+-- JsonParser
 --}
 
-module Lib
+module JsonParser
     ( runParser
     , parseJsonValue
     , parseString
@@ -24,27 +24,27 @@ parseString = parseChar '"' *> many (parseAnyChar
                ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
               <* parseChar '"'
 
-createJsonArray :: Parser [JsonValue]
+createJsonArray :: Parser [ParserValue]
 createJsonArray = parseChar '[' *>
     skipAll *> parseCommaSeparated parseJsonValue <* skipAll
     <* parseChar ']'
 
 -- Parse JSON array value
-parseJsonArray :: Parser JsonValue
-parseJsonArray = JsonArray <$> createJsonArray
+parseJsonArray :: Parser ParserValue
+parseJsonArray = ParserArray <$> createJsonArray
 
 -- Parse JSON string value
-parseJsonString :: Parser JsonValue
-parseJsonString = JsonString <$> parseString <* skipAll
+parseJsonString :: Parser ParserValue
+parseJsonString = ParserString <$> parseString <* skipAll
 
-parseJsonObject :: Parser JsonValue
-parseJsonObject = JsonObject <$> (parseChar '{' *> skipAll *>
+parseJsonObject :: Parser ParserValue
+parseJsonObject = ParserObject <$> (parseChar '{' *> skipAll *>
     parseCommaSeparated ((,) <$> parseString <* skipAll <* parseChar ':'
     <* skipAll <*> parseJsonValue) <* skipAll
     <* parseChar '}')
 
 -- Complete JSON value parser
-parseJsonValue :: Parser JsonValue
+parseJsonValue :: Parser ParserValue
 parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString <|>
     parseJsonObject
 
