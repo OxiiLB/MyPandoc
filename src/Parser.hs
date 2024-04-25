@@ -5,8 +5,6 @@
 -- Parser
 --}
 
-{-# LANGUAGE InstanceSigs #-}
-
 module Parser
     ( parseChar
     , parseAnyChar
@@ -21,12 +19,10 @@ module Parser
     , Parser(..)
     , ParserValue(..)
     ) where
-import Control.Applicative()
 import Control.Applicative (Alternative(..))
 import Control.Monad (ap)
 
-
-data Parser a = Parser {
+newtype Parser a = Parser {
     runParser :: String -> Maybe (a , String )
 }
 

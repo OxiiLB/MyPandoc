@@ -27,6 +27,7 @@ library
   exposed-modules:
       JsonParser
       Parser
+      XmlParser
   other-modules:
       Paths_mypandoc
   autogen-modules:
