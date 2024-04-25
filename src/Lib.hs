@@ -17,7 +17,6 @@ data JsonValue
     | JsonObject [(String, JsonValue)]
     deriving (Show)
 
--- zsefzelndezjdzednlzjed
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
             (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
@@ -38,11 +37,17 @@ parseJsonArray = JsonArray <$> createJsonArray
 
 -- Parse JSON string value
 parseJsonString :: Parser JsonValue
-parseJsonString = JsonString <$> parseString
+parseJsonString = JsonString <$> parseString <* skipAll
+
+parseJsonObject :: Parser JsonValue
+parseJsonObject = JsonObject <$> (parseChar '{' *> skipAll *>
+    parseCommaSeparated ((,) <$> parseString <* skipAll <* parseChar ':' <* skipAll <*> parseJsonValue) <* skipAll
+    <* parseChar '}')
 
 -- Complete JSON value parser
 parseJsonValue :: Parser JsonValue
-parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString
+parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString <|> parseJsonObject
+
 
 skipAll :: Parser ()
 skipAll = void $ many $ parseAnyChar " \n\r\t"
