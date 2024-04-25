@@ -26,7 +26,7 @@ parseString = parseChar '"' *> many (parseAnyChar
 
 createJsonArray :: Parser [JsonValue]
 createJsonArray = parseChar '[' *>
-    skipAll *> parseCommaSeparated parseJsonValue  <* skipAll
+    skipAll *> parseCommaSeparated parseJsonValue <* skipAll
     <* parseChar ']'
 
 -- Parse JSON array value
