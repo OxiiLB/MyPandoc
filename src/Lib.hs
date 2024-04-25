@@ -1,3 +1,10 @@
+{--
+-- EPITECH PROJECT, 2024
+-- MyPandoc
+-- File description:
+-- Lib
+--}
+
 module Lib
     ( runParser
     , parseJsonValue
@@ -41,12 +48,14 @@ parseJsonString = JsonString <$> parseString <* skipAll
 
 parseJsonObject :: Parser JsonValue
 parseJsonObject = JsonObject <$> (parseChar '{' *> skipAll *>
-    parseCommaSeparated ((,) <$> parseString <* skipAll <* parseChar ':' <* skipAll <*> parseJsonValue) <* skipAll
+    parseCommaSeparated ((,) <$> parseString <* skipAll <* parseChar ':'
+    <* skipAll <*> parseJsonValue) <* skipAll
     <* parseChar '}')
 
 -- Complete JSON value parser
 parseJsonValue :: Parser JsonValue
-parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString <|> parseJsonObject
+parseJsonValue = skipAll *> parseJsonArray <|> parseJsonString <|>
+    parseJsonObject
 
 
 skipAll :: Parser ()

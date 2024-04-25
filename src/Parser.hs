@@ -126,26 +126,27 @@ parseInt = read <$> parseSome (parseAnyChar ['0'..'9'])
 --     Just (as, rest) -> Just (read as, rest)
 
 parseUInt :: Parser Int
-parseUInt = Parser $ \s -> case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
-    Nothing -> Nothing
-    Just (as, rest) -> Just (read as, rest)
+parseUInt = Parser $ \s -> 
+    case runParser (parseSome (parseAnyChar ['0'..'9'])) s of
+        Nothing -> Nothing
+        Just (as, rest) -> Just (read as, rest)
 
 -- STEP 2.5
-parseTuple :: Parser (Int, Int, Int)
-parseTuple = do
-    parseChar '('
-    a <- parseInt
-    parseChar ','
-    b <- parseInt
-    parseChar ','
-    c <- parseInt
-    parseChar ')'
-    return (a, b, c)
+-- parseTuple :: Parser (Int, Int, Int)
+-- parseTuple = do
+--     parseChar '('
+--     a <- parseInt
+--     parseChar ','
+--     b <- parseInt
+--     parseChar ','
+--     c <- parseInt
+--     parseChar ')'
+--     return (a, b, c)
 
 
 -- STEP 2.3
--- parseTuple :: Parser a -> Parser (a, a)
--- parseTuple f = (,) <$> f <* parseChar ',' <*> f
+parseTuple :: Parser a -> Parser (a, a)
+parseTuple f = (,) <$> f <* parseChar ',' <*> f
 
 -- parseTuple :: Parser a -> Parser (a, a)
 -- parseTuple f s = case parseChar '(' s of
