@@ -16,6 +16,7 @@ module Parser
     , parseUInt
     , parseInt
     , parseTuple
+    , parseStringQuoted
     , Parser(..)
     , ParserValue(..)
     ) where
@@ -58,10 +59,10 @@ data ParserValue
     | ParserCodeBlock [ParserValue]
     | ParserSection [ParserValue]
     | ParserParagraphe [ParserValue]
-    | ParserHead [ParserValue]
+    | ParserHead String (Maybe String) (Maybe String)
     | ParserBody [ParserValue]
     | ParserArray [ParserValue]
-    | ParserObject [(String, ParserValue)]
+    | ParserObject [ParserValue]
     deriving (Show)
 
 parseChar :: Char -> Parser Char
@@ -112,3 +113,12 @@ parseUInt = Parser $ \s ->
 
 parseTuple :: Parser a -> Parser (a, a)
 parseTuple f = (,) <$> f <* parseChar ',' <*> f
+
+parseStringQuoted :: Parser String
+parseStringQuoted = parseChar '\"' *> many (parseAnyChar
+            (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
+               ++ "." ++ "_" ++ "/" ++ "\\" ++ ":" ++ "@" ++ "*" ++ "&"
+               ++ "%" ++ "+" ++ "=" ++ "!" ++ "?" ++ "#" ++ "$" ++ "^"
+               ++ "(" ++ ")" ++ "[" ++ "]" ++ "{" ++ "}" ++ "<" ++ ">"
+               ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
+              <* parseChar '\"'
