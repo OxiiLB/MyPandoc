@@ -248,16 +248,17 @@ parseDate :: Parser (Maybe String)
 parseDate = (Just <$> date) <|> pure Nothing
     where
         date = skipAll *> parseChar '\"' *> parseChar 'd' *>
-            parseChar 'a' *> parseChar 't' *> parseChar 'e' <* parseChar '\"' *>
-            skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll
+            parseChar 'a' *> parseChar 't' *> parseChar 'e' <*
+            parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+            parseString <* skipAll
 
 parseAuthor :: Parser (Maybe String)
 parseAuthor = (Just <$> author) <|> pure Nothing
     where
         author = skipAll *> parseChar '\"' *> parseChar 'a' *>
             parseChar 'u' *> parseChar 't' *> parseChar 'h' *> parseChar 'o' *>
-            parseChar 'r' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
-            parseString <* skipAll <* parseChar ','
+            parseChar 'r' <* parseChar '\"' *> skipAll *>
+            parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar ','
 
 parserJsonHeader :: Parser ParserValue
 parserJsonHeader = do
@@ -294,28 +295,29 @@ parserJsonHeader = do
     return $ ParserHead title author date
 
 parseItalic :: Parser String
-parseItalic = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'i' *>
-    parseChar 't' *> parseChar 'a' *> parseChar 'l' *> parseChar 'i' *>
-    parseChar 'c' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
-    parseString <* skipAll <* parseChar '}' <* skipAll
+parseItalic = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *>
+    parseChar 'i' *> parseChar 't' *> parseChar 'a' *> parseChar 'l' *>
+    parseChar 'i' *> parseChar 'c' <* parseChar '\"' *> skipAll *>
+    parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
+    <* skipAll
 
 parserJsonItalic :: Parser ParserValue
 parserJsonItalic = ParserItalic <$> parseItalic
 
 parseBold :: Parser String
-parseBold = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'b' *>
-    parseChar 'o'  *> parseChar 'l' *> parseChar 'd' <* parseChar '\"' *>
-    skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
-    <* skipAll
+parseBold = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *>
+    parseChar 'b' *> parseChar 'o'  *> parseChar 'l' *> parseChar 'd' <*
+    parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *> parseString <*
+    skipAll <* parseChar '}' <* skipAll
 
 parserJsonBold :: Parser ParserValue
 parserJsonBold = ParserBold <$> parseBold
 
 parseCode :: Parser String
-parseCode = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 'c' *>
-    parseChar 'o' *> parseChar 'd' *> parseChar 'e' <* parseChar '\"' *>
-    skipAll *> parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar '}'
-    <* skipAll
+parseCode = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *>
+    parseChar 'c' *> parseChar 'o' *> parseChar 'd' *> parseChar 'e' <*
+    parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *> parseString <*
+    skipAll <* parseChar '}' <* skipAll
 
 parserJsonCode :: Parser ParserValue
 parserJsonCode = ParserCode <$> parseCode
