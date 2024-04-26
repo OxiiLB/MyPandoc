@@ -57,7 +57,7 @@ data ParserValue
     | ParserImage (String, ParserValue)
     | ParserList [ParserValue]
     | ParserCodeBlock [ParserValue]
-    | ParserSection [ParserValue]
+    | ParserSection String [ParserValue]
     | ParserParagraphe [ParserValue]
     | ParserHead String (Maybe String) (Maybe String)
     | ParserBody [ParserValue]

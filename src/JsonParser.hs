@@ -81,39 +81,74 @@ parseCodeBlock = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *> parseC
 parserJsonCodeBlock :: Parser ParserValue
 parserJsonCodeBlock = ParserCodeBlock <$> parseCodeBlock
 
-parseSection :: Parser [ParserValue]
-parseSection = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *> parseChar 's' *>
-    parseChar 'e' *> parseChar 'c' *> parseChar 't' *> parseChar 'i' *>
-    parseChar 'o' *> parseChar 'n' <* parseChar '\"' *>
-    skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll *>
-    parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']' <* skipAll
-
 parserJsonSection :: Parser ParserValue
-parserJsonSection = ParserSection <$> parseSection
-
-parseBody :: Parser [ParserValue]
-parseBody = do
+parserJsonSection = do
+    _ <- skipAll
+    _ <- parseChar '\"'
+    _ <- parseChar 's'
+    _ <- parseChar 'e'
+    _ <- parseChar 'c'
+    _ <- parseChar 't'
+    _ <- parseChar 'i'
+    _ <- parseChar 'o'
+    _ <- parseChar 'n'
+    _ <- parseChar '\"'
+    _ <- skipAll
+    _ <- parseChar ':'
+    _ <- skipAll
+    _ <- parseChar '{'
+    _ <- skipAll
+    _ <- parseChar '\"'
+    _ <- parseChar 't'
+    _ <- parseChar 'i'
+    _ <- parseChar 't'
+    _ <- parseChar 'l'
+    _ <- parseChar 'e'
+    _ <- parseChar '\"'
+    _ <- skipAll
+    _ <- parseChar ':'
+    _ <- skipAll
+    title <- parseStringQuoted
     _ <- parseChar ','
-    skipAll
+    _ <- skipAll
+    _ <- parseChar '\"'
+    _ <- parseChar 'c'
+    _ <- parseChar 'o'
+    _ <- parseChar 'n'
+    _ <- parseChar 't'
+    _ <- parseChar 'e'
+    _ <- parseChar 'n'
+    _ <- parseChar 't'
+    _ <- parseChar '\"'
+    _ <- skipAll
+    _ <- parseChar ':'
+    _ <- skipAll
+    _ <- parseChar '['
+    content <- parseCommaSeparated parseJsonValue
+    _ <- skipAll
+    _ <- parseChar ']'
+    _ <- skipAll
+    _ <- parseChar '}'
+    return $ ParserSection title content
+   
+parserJsonBody :: Parser ParserValue
+parserJsonBody = do
+    _ <- skipAll
     _ <- parseChar '\"'
     _ <- parseChar 'b'
     _ <- parseChar 'o'
     _ <- parseChar 'd'
     _ <- parseChar 'y'
     _ <- parseChar '\"'
-    skipAll
+    _ <- skipAll
     _ <- parseChar ':'
-    skipAll
+    _ <- skipAll
     _ <- parseChar '['
-    skipAll
+    _ <- skipAll
     body <- parseCommaSeparated parseJsonValue
-    skipAll
+    _ <- skipAll
     _ <- parseChar ']'
-    return body
-
-parserJsonBody :: Parser ParserValue
-parserJsonBody = ParserBody <$> parseBody
-
+    return $ ParserBody body
 parseDate :: Parser (Maybe String)
 parseDate = (Just <$> date) <|> pure Nothing
     where

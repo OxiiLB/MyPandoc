@@ -10,6 +10,16 @@
         ],
         [
             "Every syntax element is displayed in this document."
-        ]
+        ],
+        {
+            "section": {
+                "title": "header 1",
+                "content": [
+                    [
+                        "This is a basic paragraph with text."
+                    ]
+                ]
+            }
+        }
     ]
 }
