@@ -15,20 +15,21 @@ module Lib
 
 import Parser
 import JsonParser ( parseJsonValue )
-import XmlParser ()
+import XmlParser
 import OutputJson ( writeJsonFile )
 import OutputMarkdown ( writeMarkdownFile )
 import OutputXml (writeXmlFile)
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
+import Control.Applicative (Alternative(..))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
 data Info = Info {filePath :: Maybe String, inputFormat :: Maybe Format, outputFormat :: Maybe Format, outputFile :: Maybe String} deriving Show
 
 parseAllType :: Parser ParserValue
-parseAllType = parseJsonValue -- <|> parseXmlValue <|> parseMarkdownValue
+parseAllType = parseJsonValue  <|> parseXmlValue
 
 defaultInfo :: Info
 defaultInfo = Info {filePath = Nothing, inputFormat = Nothing,

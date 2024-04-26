@@ -7,12 +7,14 @@
 
 module XmlParser
     (
+        parseXmlValue
     ) where
 
 import Control.Applicative (Alternative(..))
 import Parser
 import Control.Monad (void)
 import Data.List ()
+import Debug.Trace (trace)
 
 -- Parse XML string value
 parseStringQuoted :: Parser String
@@ -29,39 +31,8 @@ parseString = many (parseAnyChar
             (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
                ++ "." ++ "_" ++ "/" ++ "\\" ++ ":" ++ "@" ++ "*" ++ "&"
                ++ "%" ++ "+" ++ "=" ++ "!" ++ "?" ++ "#" ++ "$" ++ "^"
-               ++ "(" ++ ")" ++ "[" ++ "]" ++ "{" ++ "}" ++ "<" ++ ">"
-               ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
-
--- createXmlArray :: Parser [ParserValue]
--- createXmlArray = checkBegin "<list>" *>
---     skipAll *> parseListSeparated parseXmlValue <* skipAll
---     <* checkBegin "</list>"
-
--- -- Parse Xml array value
--- parseXmlArray :: Parser ParserValue
--- parseXmlArray = ParserArray <$> createXmlArray
-
--- -- Parse Xml string value
--- parseXmlString :: Parser ParserValue
--- parseXmlString = ParserString <$> parseString <* skipAll
-
--- -- -- Parse Xml section value
--- -- parseXmlSection :: Parser ParserValue
--- -- parseXmlSection = ParserObject <$> (checkBegin "<section title=" *>
--- --     parseChar '\"' *> skipAll *> 
--- --     <* skipAll
--- --     <* checkBegin "</section>")
-
--- Parse list separated values
--- parseListSeparated :: Parser a -> Parser [a]
--- parseListSeparated p =
---     (:) <$> p <*> many (skipAll *> checkBegin "</" *> skipAll  *> parseChar '>' *> skipAll *> p) <|> pure []
-
--- -- Parse Xml body value
--- parseXmlBody :: Parser ParserValue
--- parseXmlBody = ParserObject <$> (checkBegin "<body>" *> skipAll *>
---     parseListSeparated ((,) <$> parseString <* skipAll <* parseXmlValue) <* skipAll
---     <* checkBegin "</body>")
+               ++ "(" ++ ")" ++ "[" ++ "]" ++ "{" ++ "}" ++
+            "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
 
 -- Parse date in header of the Xml file
 parseDate :: Parser (Maybe String)
@@ -73,9 +44,7 @@ parseDate = do
     _ <- parseChar 't'
     _ <- parseChar 'e'
     _ <- parseChar '>'
-    _ <- skipAll
-    date <- parseStringQuoted
-    _ <- skipAll
+    date <- parseString
     _ <- parseChar '<'
     _ <- parseChar '/'
     _ <- parseChar 'd'
@@ -98,9 +67,7 @@ parseAuthor = do
     _ <- parseChar 'o'
     _ <- parseChar 'r'
     _ <- parseChar '>'
-    _ <- skipAll
-    author <- parseStringQuoted
-    _ <- skipAll
+    author <- parseString
     _ <- parseChar '<'
     _ <- parseChar '/'
     _ <- parseChar 'a'
@@ -110,7 +77,6 @@ parseAuthor = do
     _ <- parseChar 'o'
     _ <- parseChar 'r'
     _ <- parseChar '>'
-    _ <- skipAll
     return $ Just author
 
 -- skip document
@@ -153,7 +119,7 @@ parseXmlHeader = do
     _ <- parseChar '>'
     author <- parseAuthor
     date <- parseDate
-    return $ ParserHead title Nothing Nothing
+    return $ ParserHead title author date
 
 -- Parse code in the body of the Xml file
 parseCode :: Parser ParserValue
@@ -326,33 +292,6 @@ parseList = do
     paragraph <- parseParagraph
     return $ ParserArray []
 
--- Parse sections in the body of the Xml file
-parseSection :: Parser ParserValue
-parseSection = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 's'
-    _ <- parseChar 'e'
-    _ <- parseChar 'c'
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 'o'
-    _ <- parseChar 'n'
-    _ <- parseChar ' '
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'l'
-    _ <- parseChar 'e'
-    _ <- parseChar '='
-    title <- parseStringQuoted
-    _ <- parseChar '>'
-    paragraph <- parseParagraph
-    codeBlock <- parseCodeBlock
-    list <- parseList
-    section <- parseSection
-    return $ ParserSection title []
-
 -- Parse body of the Xml file
 parseXmlBody :: Parser ParserValue
 parseXmlBody = do
@@ -366,11 +305,34 @@ parseXmlBody = do
     section <- parseSection
     paragraph <- parseParagraph
     return $ ParserBody []
-    
+
+parseBodySeparated :: Parser a -> Parser [a]
+parseBodySeparated p = do
+    _ <- skipAll
+    _ <- parseChar '<'
+    _ <- parseChar 'b'
+    _ <- parseChar 'o'
+    _ <- parseChar 'd'
+    _ <- parseChar 'y'
+    _ <- parseChar '>'
+    _ <- skipAll
+    a <- p
+    _ <- skipAll
+    _ <- parseChar '<'
+    _ <- parseChar '/'
+    _ <- parseChar 'b'
+    _ <- parseChar 'o'
+    _ <- parseChar 'd'
+    _ <- parseChar 'y'
+    _ <- parseChar '>'
+    _ <- skipAll
+    return [a]
 
 skipAll :: Parser ()
 skipAll = void $ many $ parseAnyChar " \n\r\t"
 
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
-parseXmlValue = skipAll *> parseXmlHeader <|> parseXmlBody <|> parseSection <|> parseList <|> parseCodeBlock <|> parseParagraph <|> parseImage <|> parseLink <|> parseCode <|> parseBold <|> parseItalic
+parseXmlValue = skipAll *> parseXmlHeader <|> parseCode <|>
+    parseItalic <|> parseBold <|> parseLink <|> parseImage <|>
+    parseParagraph <|> parseCodeBlock <|> parseList
