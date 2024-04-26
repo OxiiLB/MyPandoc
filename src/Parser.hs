@@ -53,8 +53,8 @@ data ParserValue
     | ParserItalic String
     | ParserBold String
     | ParserCode String
-    | ParserLink (String, ParserValue)
-    | ParserImage (String, ParserValue)
+    | ParserLink String String
+    | ParserImage String String
     | ParserList [ParserValue]
     | ParserCodeBlock [ParserValue]
     | ParserSection String [ParserValue]
