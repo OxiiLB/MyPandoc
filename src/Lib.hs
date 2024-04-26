@@ -21,7 +21,7 @@ import OutputMarkdown ( writeMarkdownFile )
 import OutputXml (writeXmlFile)
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
-import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
+import System.Exit (exitWith, ExitCode(ExitFailure))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
@@ -43,23 +43,12 @@ detectFormat (Just file)
     | otherwise = Nothing
 
 sendToParser :: String -> Info -> Format -> IO ()
-sendToParser file info format =
-    case format of
-        JSON -> case runParser parseAllType file of
-            Just (parsedJson, remaining) ->
-                writeJsonFile (outputFile info) parsedJson
-            Nothing -> putStrLn "Error: Invalid JSON file"
-                >> exitWith (ExitFailure 84)
-        XML -> case runParser parseAllType file of
-            Just (parsedXml, remaining) ->
-                writeXmlFile (outputFile info) parsedXml
-            Nothing -> putStrLn "Error: Invalid XML file"
-                >> exitWith (ExitFailure 84)
-        Markdown -> case runParser parseAllType file of
-            Just (parsedMarkdown, remaining) ->
-                writeMarkdownFile (outputFile info) parsedMarkdown
-            Nothing -> putStrLn "Error: Invalid Markdown file"
-                >> exitWith (ExitFailure 84)
+sendToParser file info format = case runParser parseAllType file of
+    Just (parsedData, _) -> case format of
+        JSON -> writeJsonFile (outputFile info) parsedData
+        XML -> writeXmlFile (outputFile info) parsedData
+        Markdown -> writeMarkdownFile (outputFile info) parsedData
+    Nothing -> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
