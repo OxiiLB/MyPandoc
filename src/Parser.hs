@@ -19,6 +19,7 @@ module Parser
     , Parser(..)
     , ParserValue(..)
     ) where
+
 import Control.Applicative (Alternative(..))
 import Control.Monad (ap)
 
@@ -51,9 +52,21 @@ instance Functor Parser where
 -- Define your ParserValue data type
 data ParserValue
     = ParserString String
+    | ParserItalic String
+    | ParserBold String
+    | ParserCode String
+    | ParserLink (String, ParserValue)
+    | ParserImage (String, ParserValue)
+    | ParserList [ParserValue]
+    | ParserCodeBlock [ParserValue]
+    | ParserSection [ParserValue]
+    | ParserParagraphe [ParserValue]
+    | ParserHead String (Maybe String) (Maybe String)
+    | ParserBody [ParserValue]
     | ParserArray [ParserValue]
     | ParserObject [(String, ParserValue)]
     deriving (Show)
+
 
 parseChar :: Char -> Parser Char
 parseChar c = Parser $ \s -> case s of
