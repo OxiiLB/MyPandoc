@@ -30,6 +30,7 @@ library
       JsonParser
       Lib
       OutputJson
+      OutputMarkdown
       OutputXml
       Parser
       XmlParser
