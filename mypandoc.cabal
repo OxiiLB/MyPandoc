@@ -29,7 +29,6 @@ library
       GetInfo
       JsonParser
       Lib
-      OutputJson
       OutputMarkdown
       OutputXml
       Parser
