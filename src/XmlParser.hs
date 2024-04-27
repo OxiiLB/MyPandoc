@@ -16,16 +16,6 @@ import Control.Monad (void)
 import Data.List ()
 import Debug.Trace (trace)
 
--- Parse XML string value
-parseStringQuoted :: Parser String
-parseStringQuoted = parseChar '"' *> many (parseAnyChar
-            (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
-               ++ "." ++ "_" ++ "/" ++ "\\" ++ ":" ++ "@" ++ "*" ++ "&"
-               ++ "%" ++ "+" ++ "=" ++ "!" ++ "?" ++ "#" ++ "$" ++ "^"
-               ++ "(" ++ ")" ++ "[" ++ "]" ++ "{" ++ "}" ++ "<" ++ ">"
-               ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
-              <* parseChar '"'
-
 parseString :: Parser String
 parseString = many (parseAnyChar
             (['a' .. 'z'] ++ ['A' .. 'Z'] ++ " " ++ ['0' .. '9'] ++ "-"
@@ -195,119 +185,119 @@ parseBold = do
     return $ ParserBold bold
 
 -- Parse link in the body of the Xml file
-parseLink :: Parser ParserValue
-parseLink = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 'n'
-    _ <- parseChar 'k'
-    _ <- parseChar ' '
-    _ <- parseChar 'u'
-    _ <- parseChar 'r'
-    _ <- parseChar 'l'
-    _ <- parseChar '='
-    link <- parseStringQuoted
-    _ <- parseChar '>'
-    bold <- parseBold
-    italic <- parseItalic
-    code <- parseCode
-    return $ ParserLink (link, ParserParagraph []) --------------------------------- idk
+-- parseLink :: Parser ParserValue
+-- parseLink = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'l'
+--     _ <- parseChar 'i'
+--     _ <- parseChar 'n'
+--     _ <- parseChar 'k'
+--     _ <- parseChar ' '
+--     _ <- parseChar 'u'
+--     _ <- parseChar 'r'
+--     _ <- parseChar 'l'
+--     _ <- parseChar '='
+--     link <- parseStringQuoted
+--     _ <- parseChar '>'
+--     bold <- parseBold
+--     italic <- parseItalic
+--     code <- parseCode
+--     return $ ParserLink (link, ParserParagraph []) --------------------------------- idk
 
 -- Parse image in the body of the Xml file
-parseImage :: Parser ParserValue
-parseImage = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'i'
-    _ <- parseChar 'm'
-    _ <- parseChar 'a'
-    _ <- parseChar 'g'
-    _ <- parseChar 'e'
-    _ <- parseChar ' '
-    _ <- parseChar 'u'
-    _ <- parseChar 'r'
-    _ <- parseChar 'l'
-    _ <- parseChar '='
-    link <- parseStringQuoted
-    _ <- parseChar '>'
-    bold <- parseBold
-    italic <- parseItalic
-    code <- parseCode
-    return $ ParserImage (link, ParserParagraph []) --------------------------------- idk
+-- parseImage :: Parser ParserValue
+-- parseImage = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'i'
+--     _ <- parseChar 'm'
+--     _ <- parseChar 'a'
+--     _ <- parseChar 'g'
+--     _ <- parseChar 'e'
+--     _ <- parseChar ' '
+--     _ <- parseChar 'u'
+--     _ <- parseChar 'r'
+--     _ <- parseChar 'l'
+--     _ <- parseChar '='
+--     link <- parseStringQuoted
+--     _ <- parseChar '>'
+--     bold <- parseBold
+--     italic <- parseItalic
+--     code <- parseCode
+--     return $ ParserImage (link, ParserParagraph []) --------------------------------- idk
 
 -- Parse paragraphs in the body of the Xml file
-parseParagraph :: Parser ParserValue
-parseParagraph = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'p'
-    _ <- parseChar 'a'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'g'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'p'
-    _ <- parseChar 'h'
-    _ <- parseChar '>'
-    bold <- parseBold
-    italic <- parseItalic
-    code <- parseCode
-    link <- parseLink
-    image <- parseImage
-    return $ ParserParagraph []
+-- parseParagraph :: Parser ParserValue
+-- parseParagraph = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'p'
+--     _ <- parseChar 'a'
+--     _ <- parseChar 'r'
+--     _ <- parseChar 'a'
+--     _ <- parseChar 'g'
+--     _ <- parseChar 'r'
+--     _ <- parseChar 'a'
+--     _ <- parseChar 'p'
+--     _ <- parseChar 'h'
+--     _ <- parseChar '>'
+--     bold <- parseBold
+--     italic <- parseItalic
+--     code <- parseCode
+--     link <- parseLink
+--     image <- parseImage
+--     return $ ParserParagraph []
 
 -- Parse code block in the body of the Xml file
-parseCodeBlock :: Parser ParserValue
-parseCodeBlock = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar 'b'
-    _ <- parseChar 'l'
-    _ <- parseChar 'o'
-    _ <- parseChar 'c'
-    _ <- parseChar 'k'
-    _ <- parseChar '>'
-    _ <- skipAll
-    paragraph <- parseParagraph
-    return $ ParserCodeBlock []
+-- parseCodeBlock :: Parser ParserValue
+-- parseCodeBlock = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'c'
+--     _ <- parseChar 'o'
+--     _ <- parseChar 'd'
+--     _ <- parseChar 'e'
+--     _ <- parseChar 'b'
+--     _ <- parseChar 'l'
+--     _ <- parseChar 'o'
+--     _ <- parseChar 'c'
+--     _ <- parseChar 'k'
+--     _ <- parseChar '>'
+--     _ <- skipAll
+--     paragraph <- parseParagraph
+--     return $ ParserCodeBlock []
 
 -- Parse list in the body of the Xml file
-parseList :: Parser ParserValue
-parseList = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 's'
-    _ <- parseChar 't'
-    _ <- parseChar '>'
-    _ <- skipAll
-    paragraph <- parseParagraph
-    return $ ParserArray []
+-- parseList :: Parser ParserValue
+-- parseList = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'l'
+--     _ <- parseChar 'i'
+--     _ <- parseChar 's'
+--     _ <- parseChar 't'
+--     _ <- parseChar '>'
+--     _ <- skipAll
+--     paragraph <- parseParagraph
+--     return $ ParserArray []
 
 -- Parse body of the Xml file
-parseXmlBody :: Parser ParserValue
-parseXmlBody = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'y'
-    _ <- parseChar '>'
-    section <- parseSection
-    paragraph <- parseParagraph
-    return $ ParserBody []
+-- parseXmlBody :: Parser ParserValue
+-- parseXmlBody = do
+--     _ <- skipAll
+--     _ <- parseChar '<'
+--     _ <- parseChar 'b'
+--     _ <- parseChar 'o'
+--     _ <- parseChar 'd'
+--     _ <- parseChar 'y'
+--     _ <- parseChar '>'
+--     section <- parseSection
+--     paragraph <- parseParagraph
+--     return $ ParserBody []
 
-parseBodySeparated :: Parser a -> Parser [a]
-parseBodySeparated p = do
+parserXmlBody :: Parser ParserValue
+parserXmlBody = do
     _ <- skipAll
     _ <- parseChar '<'
     _ <- parseChar 'b'
@@ -316,7 +306,7 @@ parseBodySeparated p = do
     _ <- parseChar 'y'
     _ <- parseChar '>'
     _ <- skipAll
-    a <- p
+    body <- parseCommaSeparated parseXmlValue
     _ <- skipAll
     _ <- parseChar '<'
     _ <- parseChar '/'
@@ -325,14 +315,10 @@ parseBodySeparated p = do
     _ <- parseChar 'd'
     _ <- parseChar 'y'
     _ <- parseChar '>'
-    _ <- skipAll
-    return [a]
-
-skipAll :: Parser ()
-skipAll = void $ many $ parseAnyChar " \n\r\t"
+    return $ ParserBody body
 
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
-parseXmlValue = skipAll *> parseXmlHeader <|> parseCode <|>
-    parseItalic <|> parseBold <|> parseLink <|> parseImage <|>
-    parseParagraph <|> parseCodeBlock <|> parseList
+parseXmlValue = skipAll *> parseXmlHeader <|> parserXmlBody <|> parseCode <|>
+    parseItalic <|> parseBold -- <|>  parseLink <|> parseImage <|>
+    -- parseParagraph <|> parseCodeBlock <|> parseList

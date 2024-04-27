@@ -13,7 +13,6 @@ module JsonParser
 import Control.Applicative (Alternative(..))
 import Parser
 import Debug.Trace (trace)
-import Control.Monad (void)
 
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
@@ -244,6 +243,7 @@ parserJsonBody = do
     _ <- skipAll
     _ <- parseChar ']'
     return $ ParserBody body
+
 parseDate :: Parser (Maybe String)
 parseDate = (Just <$> date) <|> pure Nothing
     where
@@ -344,10 +344,3 @@ parseJsonValue = skipAll *> parserJsonObject <|> parserJsonHeader <|>
     parserJsonParagraph <|> parserJsonImage <|> parserJsonLink
     <|> parseJsonString <|> parseJsonArray
 
-skipAll :: Parser ()
-skipAll = void $ many $ parseAnyChar " \n\r\t"
-
--- Parse comma separated values
-parseCommaSeparated :: Parser a -> Parser [a]
-parseCommaSeparated p =
-  (:) <$> p <*> many (skipAll *> (trace "parseCommaSeparated\n" $ parseChar ',' ) *> skipAll *> p) <|> pure []

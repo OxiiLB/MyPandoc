@@ -17,12 +17,15 @@ module Parser
     , parseInt
     , parseTuple
     , parseStringQuoted
+    , skipAll
+    , parseCommaSeparated
     , Parser(..)
     , ParserValue(..)
     ) where
 
 import Control.Applicative (Alternative(..))
 import Control.Monad (ap)
+import Control.Monad (void)
 
 newtype Parser a = Parser {
     runParser :: String -> Maybe (a , String )
@@ -124,3 +127,10 @@ parseStringQuoted = parseChar '\"' *> many (parseAnyChar
                ++ "(" ++ ")" ++ "[" ++ "]" ++ "{" ++ "}" ++ "<" ++ ">"
                ++ "," ++ ";" ++ "'" ++ "`" ++ "~" ++ "|" ++ " "))
               <* parseChar '\"'
+
+skipAll :: Parser ()
+skipAll = void $ many $ parseAnyChar " \n\r\t"
+
+parseCommaSeparated :: Parser a -> Parser [a]
+parseCommaSeparated p =
+  (:) <$> p <*> many (skipAll *> parseChar ','  *> skipAll *> p) <|> pure []
