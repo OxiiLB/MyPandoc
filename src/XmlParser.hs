@@ -15,6 +15,7 @@ import Parser
 import Control.Monad (void)
 import Data.List ()
 import Debug.Trace (trace)
+import JsonParser (parseJsonValue)
 
 parseString :: Parser String
 parseString = many (parseAnyChar
@@ -89,7 +90,7 @@ skipDocument = do
 -- Parse header of the Xml file
 parseXmlHeader :: Parser ParserValue
 parseXmlHeader = do
-    _ <- skipDocument
+    _ <- trace "parseHeaderBegin\n" skipDocument
     _ <- skipAll
     _ <- parseChar '<'
     _ <- parseChar 'h'
@@ -228,26 +229,36 @@ parseBold = do
 --     return $ ParserImage (link, ParserParagraph []) --------------------------------- idk
 
 -- Parse paragraphs in the body of the Xml file
--- parseParagraph :: Parser ParserValue
--- parseParagraph = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'p'
---     _ <- parseChar 'a'
---     _ <- parseChar 'r'
---     _ <- parseChar 'a'
---     _ <- parseChar 'g'
---     _ <- parseChar 'r'
---     _ <- parseChar 'a'
---     _ <- parseChar 'p'
---     _ <- parseChar 'h'
---     _ <- parseChar '>'
---     bold <- parseBold
---     italic <- parseItalic
---     code <- parseCode
---     link <- parseLink
---     image <- parseImage
---     return $ ParserParagraph []
+parserXmlParagraph :: Parser ParserValue
+parserXmlParagraph = do
+    _ <- skipAll
+    _ <- parseChar '<'
+    _ <- parseChar 'p'
+    _ <- parseChar 'a'
+    _ <- parseChar 'r'
+    _ <- parseChar 'a'
+    _ <- parseChar 'g'
+    _ <- parseChar 'r'
+    _ <- parseChar 'a'
+    _ <- parseChar 'p'
+    _ <- parseChar 'h'
+    _ <- parseChar '>'
+    _ <- skipAll
+    paragraph <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
+    _ <- skipAll
+    _ <- parseChar '<'
+    _ <- parseChar '/'
+    _ <- parseChar 'p'
+    _ <- parseChar 'a'
+    _ <- parseChar 'r'
+    _ <- parseChar 'a'
+    _ <- parseChar 'g'
+    _ <- parseChar 'r'
+    _ <- parseChar 'a'
+    _ <- parseChar 'p'
+    _ <- parseChar 'h'
+    _ <- parseChar '>'
+    return $ ParserParagraph paragraph
 
 -- Parse code block in the body of the Xml file
 -- parseCodeBlock :: Parser ParserValue
@@ -265,7 +276,7 @@ parseBold = do
 --     _ <- parseChar 'k'
 --     _ <- parseChar '>'
 --     _ <- skipAll
---     paragraph <- parseParagraph
+--     paragraph <- parserXmlParagraph
 --     return $ ParserCodeBlock []
 
 -- Parse list in the body of the Xml file
@@ -279,7 +290,7 @@ parseBold = do
 --     _ <- parseChar 't'
 --     _ <- parseChar '>'
 --     _ <- skipAll
---     paragraph <- parseParagraph
+--     paragraph <- parserXmlParagraph
 --     return $ ParserArray []
 
 -- Parse body of the Xml file
@@ -293,20 +304,20 @@ parseBold = do
 --     _ <- parseChar 'y'
 --     _ <- parseChar '>'
 --     section <- parseSection
---     paragraph <- parseParagraph
+--     paragraph <- parserXmlParagraph
 --     return $ ParserBody []
 
 parserXmlBody :: Parser ParserValue
 parserXmlBody = do
-    _ <- skipAll
+    _ <- trace "parseBodyBegin\n" skipAll
     _ <- parseChar '<'
     _ <- parseChar 'b'
     _ <- parseChar 'o'
     _ <- parseChar 'd'
     _ <- parseChar 'y'
-    _ <- parseChar '>'
+    _ <- trace "parseBody\n" parseChar '>'
     _ <- skipAll
-    body <- parseCommaSeparated parseXmlValue
+    body <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
     _ <- skipAll
     _ <- parseChar '<'
     _ <- parseChar '/'
@@ -320,5 +331,5 @@ parserXmlBody = do
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
 parseXmlValue = skipAll *> parseXmlHeader <|> parserXmlBody <|> parseCode <|>
-    parseItalic <|> parseBold -- <|>  parseLink <|> parseImage <|>
-    -- parseParagraph <|> parseCodeBlock <|> parseList
+    parseItalic <|> parseBold <|> parserXmlParagraph -- <|>  parseLink <|> parseImage <|>
+    -- parserXmlParagraph <|> parseCodeBlock <|> parseList

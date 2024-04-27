@@ -130,7 +130,7 @@ parserJsonParagraph = do
     content <- parseCommaSeparated parseJsonValue
     _ <- skipAll
     _ <- parseChar ']'
-    return $ ParserParagraphe content
+    return $ ParserParagraph content
 
 parserJsonList :: Parser ParserValue
 parserJsonList = do

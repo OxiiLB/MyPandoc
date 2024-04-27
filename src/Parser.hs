@@ -62,7 +62,7 @@ data ParserValue
     | ParserList [ParserValue]
     | ParserCodeBlock [ParserValue]
     | ParserSection String [ParserValue]
-    | ParserParagraphe [ParserValue]
+    | ParserParagraph [ParserValue]
     | ParserHead String (Maybe String) (Maybe String)
     | ParserBody [ParserValue]
     | ParserArray [ParserValue]
