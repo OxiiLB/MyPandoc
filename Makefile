@@ -20,4 +20,10 @@ clean:
 
 re:	clean all
 
-.PHONY: all build test clean re
+tests_run: re
+	rm -rf test/coverage
+	mkdir -p test/coverage
+	stack test --coverage
+	mv $$(find . -iname "*.tix") test/coverage
+
+.PHONY: all build test clean re tests_run

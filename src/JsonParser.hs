@@ -8,6 +8,21 @@
 module JsonParser
     ( runParser
     , parseJsonValue
+    , parserJsonSection
+    , parserJsonCodeBlock
+    , parserJsonList
+    , parserJsonParagraph
+    , parserJsonImage
+    , parserJsonLink
+    , parserJsonBody
+    , parserJsonHeader
+    , parserJsonItalic
+    , parserJsonBold
+    , parserJsonCode
+    , parserJsonObject
+    , parseJsonString
+    , parseJsonArray
+    , parseString
     ) where
 
 import Control.Applicative (Alternative(..))
@@ -159,9 +174,9 @@ parserJsonObject = ParserObject <$> (skipAll *> parseChar '{' *> skipAll *>
 
 -- Complete JSON value parser
 parseJsonValue :: Parser ParserValue
-parseJsonValue = skipAll *> parserJsonObject <|> parserJsonHeader <|>
+parseJsonValue = skipAll *> parserJsonHeader <|>
     parserJsonBody <|>  parserJsonCode <|> parserJsonBold <|> parserJsonItalic
     <|> parserJsonSection <|> parserJsonCodeBlock <|> parserJsonList <|>
     parserJsonParagraph <|> parserJsonImage <|> parserJsonLink
-    <|> parseJsonString <|> parseJsonArray
+    <|> parseJsonString <|> parseJsonArray <|> parserJsonObject
 

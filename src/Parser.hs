@@ -68,7 +68,7 @@ data ParserValue
     | ParserBody [ParserValue]
     | ParserArray [ParserValue]
     | ParserObject [ParserValue]
-    deriving (Show)
+    deriving (Show, Eq)
 
 
 parseChar :: Char -> Parser Char

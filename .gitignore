@@ -29,6 +29,8 @@ cabal.project.local~
 
 *.txt
 
+test/coverage/
+
 examples/
 
 mypandoc
