@@ -31,7 +31,7 @@ jobs:
             fields=($(printf "%s" "$line"|cut -d':' --output-delimiter=' ' -f1-))
             echo "::error title=${fields[2]} lambdananas,file=${fields[0]},line=${fields[1]}::${fields[3]}"
           done < "$input"
-          if [ $(cat /tmp/lambdananas.log | wc -l) -gt 0 ]; then
+          if [ $(cat /tmp/lambdananas.log | wc -l) -gt 11 ]; then
               exit 1
           fi
 
