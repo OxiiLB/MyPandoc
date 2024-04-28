@@ -15,7 +15,7 @@ module Lib
 
 import Parser
 import XmlParser
--- import OutputMarkdown ( writeMarkdownFile )
+import OutputMarkdown ( writeMarkdownFile )
 import OutputXml (writeXmlFile)
 import OutputJson
 import JsonParser
@@ -77,7 +77,7 @@ parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
 parseFile (Just file) info | isNothing (inputFormat info) =
     parseFile (Just file) (info { inputFormat = detectFormat (filePath info) })
-parseFile (Just file) info = -- will send file to functions, but for now, im just using exitSuccess as a placeholder
+parseFile (Just file) info =
   case outputFormat info of
     Nothing -> putStrLn "type ./mypandoc -help" >> exitWith (ExitFailure 84)
     _ -> sendToParser file info (fromJust $ outputFormat info)
