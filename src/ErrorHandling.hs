@@ -22,9 +22,9 @@ checkFormatArgs ("-e":val:rest)
 checkFormatArgs (_:rest) = checkFormatArgs rest
 
 checkFlagRepeats :: [String] -> Bool
-checkFlagRepeats [] = False
-checkFlagRepeats args | length args /= length (nub args) = True
-                      | otherwise = False
+checkFlagRepeats args =
+    let relevantFlags = filter (`elem` ["-i", "-f", "-e", "-o"]) args
+    in length relevantFlags /= length (nub relevantFlags)
 
 checkFlags :: [String] -> Bool
 checkFlags [] = False

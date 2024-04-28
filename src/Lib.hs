@@ -59,7 +59,8 @@ jsonConverter file info = case runParser parseAllType file of
 
 markdownConverter :: String -> Info -> IO ()
 markdownConverter file info = case runParser parseAllType file of
-    Just (parsedMarkdown, _) -> writeMarkdownFile (outputFile info) parsedMarkdown
+    Just (parsedMarkdown, _) ->
+        writeMarkdownFile (outputFile info) parsedMarkdown
         >> exitSuccess
     Nothing -> putStrLn "Error: Invalid file"
         >> exitWith (ExitFailure 84)
@@ -75,9 +76,13 @@ parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
 parseFile (Just file) info | isNothing (inputFormat info) =
     parseFile (Just file) (info { inputFormat = detectFormat (filePath info) })
-parseFile (Just file) info =
-  case outputFormat info of
-    Nothing -> putStrLn "type ./mypandoc -help" >> exitWith (ExitFailure 84)
-    _ -> sendToParser file info (fromJust $ outputFormat info)
-    where fromJust (Just a) = a
-          fromJust Nothing = error "fromJust: Nothing"
+    | otherwise = let detectedFormat = detectFormat (filePath info)
+        in if detectedFormat /= inputFormat info
+            then putStrLn "Given inputFormat doesn't match actual inputFormat"
+                >> exitWith (ExitFailure 84)
+            else case outputFormat info of
+                Nothing -> putStrLn "type ./mypandoc -help"
+                    >> exitWith (ExitFailure 84)
+                _ -> sendToParser file info (fromJust $ outputFormat info)
+  where fromJust (Just a) = a
+        fromJust Nothing = error "error: Nothing"
