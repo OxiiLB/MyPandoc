@@ -44,9 +44,9 @@ parseAuthor = do
 
 skipEndHeader :: Parser ()
 skipEndHeader = do
-    _ <- trace "skipeEndHeaderBegin\n" skipAll
+    _ <- skipAll
     _ <- parseStr "</header>"
-    _ <- trace "skipeEndHeaderEnd\n" skipAll
+    _ <- skipAll
     return ()
 
 -- Parse header of the Xml file
@@ -58,12 +58,12 @@ parseXmlHeader = do
     _ <- parseChar '>'
     author <- parseAuthor
     date <- parseDate
-    _ <- trace "HeaderEnd\n" skipEndHeader
+    _ <- skipEndHeader
     return $ ParserHead title author date
 
 -- Parse code in the body of the Xml file
-parseCode :: Parser ParserValue
-parseCode = do
+parseXmlCode :: Parser ParserValue
+parseXmlCode = do
     _ <- skipAll
     _ <- parseStr "<code>"
     _ <- skipAll
@@ -74,8 +74,8 @@ parseCode = do
     return $ ParserCode code
 
 -- Parse italic in the body of the Xml file
-parseItalic :: Parser ParserValue
-parseItalic = do
+parseXmlItalic :: Parser ParserValue
+parseXmlItalic = do
     _ <- skipAll
     _ <- parseStr "<italic>"
     _ <- skipAll
@@ -86,8 +86,8 @@ parseItalic = do
     return $ ParserItalic italic
 
 -- Parse bold in the body of the Xml file
-parseBold :: Parser ParserValue
-parseBold = do
+parseXmlBold :: Parser ParserValue
+parseXmlBold = do
     _ <- skipAll
     _ <- parseStr "<bold>"
     _ <- skipAll
@@ -97,96 +97,69 @@ parseBold = do
     _ <- skipAll
     return $ ParserBold bold
 
--- Parse link in the body of the Xml file
--- parseLink :: Parser ParserValue
--- parseLink = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'l'
---     _ <- parseChar 'i'
---     _ <- parseChar 'n'
---     _ <- parseChar 'k'
---     _ <- parseChar ' '
---     _ <- parseChar 'u'
---     _ <- parseChar 'r'
---     _ <- parseChar 'l'
---     _ <- parseChar '='
---     link <- parseStringQuoted
---     _ <- parseChar '>'
---     bold <- parseBold
---     italic <- parseItalic
---     code <- parseCode
---     return $ ParserLink (link, ParserParagraph []) --------------------------------- idk
+parseXmlImageUrl :: Parser String
+parseXmlImageUrl = skipAll *> parseStr "<image url=" *> skipAll *>
+    parseStringQuoted <* skipAll <* parseChar '>'
 
--- Parse image in the body of the Xml file
--- parseImage :: Parser ParserValue
--- parseImage = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'i'
---     _ <- parseChar 'm'
---     _ <- parseChar 'a'
---     _ <- parseChar 'g'
---     _ <- parseChar 'e'
---     _ <- parseChar ' '
---     _ <- parseChar 'u'
---     _ <- parseChar 'r'
---     _ <- parseChar 'l'
---     _ <- parseChar '='
---     link <- parseStringQuoted
---     _ <- parseChar '>'
---     bold <- parseBold
---     italic <- parseItalic
---     code <- parseCode
---     return $ ParserImage (link, ParserParagraph []) --------------------------------- idk
+parseXmlImageAlt :: Parser String
+parseXmlImageAlt = skipAll *> parseString <* skipAll <* parseStr "</image>"
+    <* skipAll
 
--- Parse paragraphs in the body of the Xml file
+parseXmlImage :: Parser ParserValue
+parseXmlImage = ParserImage <$> parseXmlImageUrl <*> parseXmlImageAlt
+
+parseXmlLinkUrl :: Parser String
+parseXmlLinkUrl = skipAll *> parseStr "<link url=" *> skipAll *>
+    parseStringQuoted <* skipAll <* parseChar '>'
+
+parseXmlLinkContent :: Parser String
+parseXmlLinkContent = skipAll *> parseString <* skipAll <* parseStr "</link>"
+    <* skipAll
+
+parseXmlLink :: Parser ParserValue
+parseXmlLink = ParserLink <$> parseXmlLinkUrl <*> parseXmlLinkContent
+
 parseXmlParagraph :: Parser ParserValue
 parseXmlParagraph = do
     _ <- skipAll
     _ <- parseStr "<paragraph>"
     _ <- skipAll
-    paragraph <- manyTill parseXmlString (parseStr "</paragraph>")
+    paragraph <- manyTill parseXmlValue (parseStr "</paragraph>")
     _ <- skipAll
     return $ ParserParagraph paragraph
 
--- Parse code block in the body of the Xml file
--- parseCodeBlock :: Parser ParserValue
--- parseCodeBlock = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'c'
---     _ <- parseChar 'o'
---     _ <- parseChar 'd'
---     _ <- parseChar 'e'
---     _ <- parseChar 'b'
---     _ <- parseChar 'l'
---     _ <- parseChar 'o'
---     _ <- parseChar 'c'
---     _ <- parseChar 'k'
---     _ <- parseChar '>'
---     _ <- skipAll
---     paragraph <- parseXmlParagraph
---     return $ ParserCodeBlock []
+parseXmlCodeBlock :: Parser ParserValue
+parseXmlCodeBlock = do
+    _ <- parseStr "<codeblock>"
+    _ <- skipAll
+    codeBlock <- manyTill parseXmlValue (parseStr "</codeblock>")
+    _ <- skipAll
+    return $ ParserCodeBlock codeBlock
 
--- Parse list in the body of the Xml file
--- parseList :: Parser ParserValue
--- parseList = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'l'
---     _ <- parseChar 'i'
---     _ <- parseChar 's'
---     _ <- parseChar 't'
---     _ <- parseChar '>'
---     _ <- skipAll
---     paragraph <- parseXmlParagraph
---     return $ ParserArray []
+parseXmlList :: Parser ParserValue
+parseXmlList = do
+    _ <- parseStr "<list>"
+    _ <- skipAll
+    list <- manyTill parseXmlValue (parseStr "</list>")
+    _ <- skipAll
+    return $ ParserList list
+
+parseXmlSectionTitle :: Parser String
+parseXmlSectionTitle = skipAll *> parseStr "<section title=" *> skipAll *>
+    parseStringQuoted <* skipAll <* parseChar '>'
+
+parseXmlSectionContent :: Parser [ParserValue]
+parseXmlSectionContent = skipAll *> manyTill parseXmlValue
+    (parseStr "</section>") <* skipAll
+
+parseXmlSection :: Parser ParserValue
+parseXmlSection = ParserSection <$> parseXmlSectionTitle <*>
+    parseXmlSectionContent
 
 parseXmlBody :: Parser ParserValue
 parseXmlBody = do
     _ <- parseStr "<body>"
-    _ <- trace "inbody" skipAll
+    _ <- skipAll
     body <- manyTill parseXmlValue (parseStr "</body>")
     _ <- skipAll
     return $ ParserBody body
@@ -210,4 +183,6 @@ parseXmlObject = do
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
 parseXmlValue = skipAll *> parseXmlObject <|> parseXmlHeader <|> parseXmlBody
-    <|> parseXmlParagraph
+    <|> parseXmlParagraph <|> parseXmlSection <|> parseXmlBold <|>
+    parseXmlItalic <|> parseXmlCode <|> parseXmlCodeBlock <|> parseXmlList <|>
+    parseXmlLink <|> parseXmlImage <|> parseXmlString
