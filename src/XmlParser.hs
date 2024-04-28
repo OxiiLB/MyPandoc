@@ -63,37 +63,25 @@ parseXmlHeader = do
 -- Parse code in the body of the Xml file
 parseXmlCode :: Parser ParserValue
 parseXmlCode = do
-    _ <- skipAll
     _ <- parseStr "<code>"
-    _ <- skipAll
     code <- parseString
-    _ <- skipAll
     _ <- parseStr "</code>"
-    _ <- skipAll
     return $ ParserCode code
 
 -- Parse italic in the body of the Xml file
 parseXmlItalic :: Parser ParserValue
 parseXmlItalic = do
-    _ <- skipAll
     _ <- parseStr "<italic>"
-    _ <- skipAll
     italic <- parseString
-    _ <- skipAll
     _ <- parseStr "</italic>"
-    _ <- skipAll
     return $ ParserItalic italic
 
 -- Parse bold in the body of the Xml file
 parseXmlBold :: Parser ParserValue
 parseXmlBold = do
-    _ <- skipAll
     _ <- parseStr "<bold>"
-    _ <- skipAll
     bold <- parseString
-    _ <- skipAll
     _ <- parseStr "</bold>"
-    _ <- skipAll
     return $ ParserBold bold
 
 parseXmlImageUrl :: Parser String
