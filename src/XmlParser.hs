@@ -13,7 +13,6 @@ module XmlParser
 import Control.Applicative (Alternative(..))
 import Parser
 import Data.List ()
-import Debug.Trace (trace)
 
 parseString :: Parser String
 parseString = many (parseAnyChar

@@ -11,7 +11,6 @@ module OutputJson
 
 import Parser ( ParserValue(..) )
 import Data.List ( intercalate )
-import GHC.IO.Device (RawIO(write))
 
 printHeader :: ParserValue -> Int -> String
 printHeader (ParserHead title Nothing Nothing) level =

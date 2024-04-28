@@ -23,7 +23,6 @@ import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
 import Control.Applicative (Alternative(..))
-import GHC.IO.Device (RawIO(write))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
@@ -60,7 +59,7 @@ jsonConverter file info = case runParser parseAllType file of
 
 markdownConverter :: String -> Info -> IO ()
 markdownConverter file info = case runParser parseAllType file of
-    Just (parsedMarkdown, remaining) -> writeMarkdownFile (outputFile info) parsedMarkdown
+    Just (parsedMarkdown, _) -> writeMarkdownFile (outputFile info) parsedMarkdown
         >> exitSuccess
     Nothing -> putStrLn "Error: Invalid Markdown file"
         >> exitWith (ExitFailure 84)
@@ -71,7 +70,6 @@ sendToParser file info format =
         JSON -> jsonConverter file info
         XML -> xmlConverter file info
         Markdown -> markdownConverter file info
-        _ -> putStrLn "type ./mypandoc -help" >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)

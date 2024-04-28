@@ -71,7 +71,7 @@ innerText (ParserLink url value : xs) = "<link url=\"" ++ url ++
     "\">" ++ escapeXml value ++ "</link>" ++ innerText xs
 innerText (ParserImage url value : xs) = "<image url=\"" ++ url ++
     "\">" ++ escapeXml value ++ "</image>" ++ innerText xs
-innerText (x:xs) = innerText xs
+innerText (_:xs) = innerText xs
 
 
 escapeXml :: String -> String
