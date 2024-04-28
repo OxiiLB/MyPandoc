@@ -48,14 +48,14 @@ xmlConverter :: String -> Info -> IO ()
 xmlConverter file info = case runParser parseAllType file of
     Just (parsedXml, _) -> writeXmlFile (outputFile info) parsedXml
         >> exitSuccess
-    Nothing -> putStrLn "Error: Invalid XML file"
+    Nothing -> putStrLn "Error: Invalid file"
         >> exitWith (ExitFailure 84)
 
 jsonConverter :: String -> Info -> IO ()
 jsonConverter file info = case runParser parseAllType file of
     Just (parsedJson, _) -> writeJsonFile (outputFile info) parsedJson
         >> exitSuccess
-    Nothing -> putStrLn "Error: Invalid JSON file"
+    Nothing -> putStrLn "Error: Invalid file"
         >> exitWith (ExitFailure 84)
 
 -- markdownConverter :: String -> Info -> IO ()
