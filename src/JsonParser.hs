@@ -12,7 +12,6 @@ module JsonParser
 
 import Control.Applicative (Alternative(..))
 import Parser
-import Debug.Trace (trace)
 
 parseString :: Parser String
 parseString = parseChar '"' *> many (parseAnyChar
@@ -31,218 +30,87 @@ createJsonArray = parseChar '[' *>
 parseJsonArray :: Parser ParserValue
 parseJsonArray = ParserArray <$> createJsonArray
 
+parseLinkUrl :: Parser String
+parseLinkUrl = skipAll *> parseChar '\"' *> parseChar 'l' *> parseChar 'i' *>
+    parseChar 'n' *> parseChar 'k' <* parseChar '\"' *> skipAll *>
+    parseChar ':' *> skipAll *> parseChar '{' *> skipAll *>
+    skipAll *> parseChar '\"' *> parseChar 'u' *> parseChar 'r' *>
+    parseChar 'l' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseStringQuoted <* skipAll
+
+parseLinkContent :: Parser String
+parseLinkContent = skipAll *> parseChar ',' *>
+    skipAll *> parseChar '\"' *> parseChar 'c' *> parseChar 'o' *>
+    parseChar 'n' *> parseChar 't' *> parseChar 'e' *> parseChar 'n' *>
+    parseChar 't' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseChar '[' *> skipAll *> parseStringQuoted <* skipAll <* parseChar ']'
+    <* skipAll <* parseChar '}'
+
 parserJsonLink :: Parser ParserValue
-parserJsonLink = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 'n'
-    _ <- parseChar 'k'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '{'
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'u'
-    _ <- parseChar 'r'
-    _ <- parseChar 'l'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    url <- parseStringQuoted
-    _ <- skipAll
-    _ <- parseChar ','
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'n'
-    _ <- parseChar 't'
-    _ <- parseChar 'e'
-    _ <- parseChar 'n'
-    _ <- parseChar 't'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    content <- parseStringQuoted
-    _ <- skipAll
-    _ <- parseChar ']'
-    _ <- skipAll
-    _ <- parseChar '}'
-    return $ ParserLink url content
+parserJsonLink = ParserLink <$> parseLinkUrl <*> parseLinkContent
+
+parseImageUrl :: Parser String
+parseImageUrl = skipAll *> parseChar '\"' *> parseChar 'i' *> parseChar 'm' *>
+    parseChar 'a' *> parseChar 'g' *> parseChar 'e' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '{' *> skipAll *>
+    skipAll *> parseChar '\"' *> parseChar 'u' *> parseChar 'r' *>
+    parseChar 'l' <* parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseStringQuoted <* skipAll
+
+parseImageAlt :: Parser String
+parseImageAlt = skipAll *> parseChar ',' *> skipAll *>
+    parseChar '\"' *> parseChar 'a' *> parseChar 'l' *> parseChar 't' *>
+    parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *> parseChar '['
+    *> skipAll *> parseStringQuoted <* skipAll <* parseChar ']' <* skipAll <*
+    parseChar '}'
 
 parserJsonImage :: Parser ParserValue
-parserJsonImage = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'i'
-    _ <- parseChar 'm'
-    _ <- parseChar 'a'
-    _ <- parseChar 'g'
-    _ <- parseChar 'e'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '{'
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'u'
-    _ <- parseChar 'r'
-    _ <- parseChar 'l'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    url <- parseStringQuoted
-    _ <- skipAll
-    _ <- parseChar ','
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'a'
-    _ <- parseChar 'l'
-    _ <- parseChar 't'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    alt <- parseStringQuoted
-    _ <- skipAll
-    _ <- parseChar ']'
-    _ <- skipAll
-    _ <- parseChar '}'
-    return $ ParserImage url alt
+parserJsonImage = ParserImage <$> parseImageUrl <*> parseImageAlt
 
 parserJsonParagraph :: Parser ParserValue
-parserJsonParagraph = do
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    content <- parseCommaSeparated parseJsonValue
-    _ <- skipAll
-    _ <- parseChar ']'
-    return $ ParserParagraph content
+parserJsonParagraph = ParserParagraph <$> (skipAll *> parseChar '[' *>
+    skipAll *> parseCommaSeparated parseJsonValue <* skipAll
+    <* parseChar ']')
 
 parserJsonList :: Parser ParserValue
-parserJsonList = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 's'
-    _ <- parseChar 't'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    content <- parseCommaSeparated parserJsonParagraph
-    _ <- skipAll
-    _ <- parseChar ']'
-    return $ ParserList content
+parserJsonList = ParserList <$> (skipAll *> parseChar '\"' *> parseChar 'l' *>
+    parseChar 'i' *> parseChar 's' *> parseChar 't' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll
+    *> parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']')
 
 parserJsonCodeBlock :: Parser ParserValue
-parserJsonCodeBlock = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar 'b'
-    _ <- parseChar 'l'
-    _ <- parseChar 'o'
-    _ <- parseChar 'c'
-    _ <- parseChar 'k'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    content <- parseCommaSeparated parserJsonParagraph
-    _ <- skipAll
-    _ <- parseChar ']'
-    return $ ParserCodeBlock content
+parserJsonCodeBlock = ParserCodeBlock <$> (skipAll *> parseChar '\"' *>
+    parseChar 'c' *> parseChar 'o' *> parseChar 'd' *> parseChar 'e' *>
+    parseChar 'b' *> parseChar 'l' *> parseChar 'o' *> parseChar 'c' *>
+    parseChar 'k' *> parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *>
+    parseChar '[' *> skipAll *> parseCommaSeparated parseJsonValue <* skipAll
+    <* parseChar ']' <* skipAll)
+
+parseSectionTitle :: Parser String
+parseSectionTitle = skipAll *> parseChar '\"' *>
+    parseChar 's' *> parseChar 'e' *> parseChar 'c' *> parseChar 't' *>
+    parseChar 'i' *> parseChar 'o' *> parseChar 'n' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '{' *>
+    skipAll *> parseChar '\"' *> parseChar 't' *> parseChar 'i' *>
+    parseChar 't' *> parseChar 'l' *> parseChar 'e' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseStringQuoted <* skipAll
+
+parseContentSection :: Parser [ParserValue]
+parseContentSection = skipAll *> parseChar ',' *> skipAll *> parseChar '\"' *>
+    parseChar 'c' *> parseChar 'o' *> parseChar 'n' *> parseChar 't' *>
+    parseChar 'e' *> parseChar 'n' *> parseChar 't' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll *>
+    parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']' <* skipAll
+    <* skipAll <* parseChar '}'
 
 parserJsonSection :: Parser ParserValue
-parserJsonSection = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 's'
-    _ <- parseChar 'e'
-    _ <- parseChar 'c'
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 'o'
-    _ <- parseChar 'n'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '{'
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'l'
-    _ <- parseChar 'e'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    title <- parseStringQuoted
-    _ <- parseChar ','
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'n'
-    _ <- parseChar 't'
-    _ <- parseChar 'e'
-    _ <- parseChar 'n'
-    _ <- parseChar 't'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    content <- parseCommaSeparated parseJsonValue
-    _ <- skipAll
-    _ <- parseChar ']'
-    _ <- skipAll
-    _ <- parseChar '}'
-    return $ ParserSection title content
-   
+parserJsonSection = ParserSection <$> parseSectionTitle <*> parseContentSection
+
 parserJsonBody :: Parser ParserValue
-parserJsonBody = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'y'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '['
-    _ <- skipAll
-    body <- parseCommaSeparated parseJsonValue
-    _ <- skipAll
-    _ <- parseChar ']'
-    return $ ParserBody body
+parserJsonBody = ParserBody <$> (skipAll *> parseChar '\"' *> parseChar 'b' *>
+    parseChar 'o' *> parseChar 'd' *> parseChar 'y' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll
+    *> parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']')
 
 parseDate :: Parser (Maybe String)
 parseDate = (Just <$> date) <|> pure Nothing
@@ -260,39 +128,24 @@ parseAuthor = (Just <$> author) <|> pure Nothing
             parseChar 'r' <* parseChar '\"' *> skipAll *>
             parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar ','
 
+parseHeaderTitle :: Parser String
+parseHeaderTitle = skipAll *> parseChar '\"' *> parseChar 'h' *> parseChar 'e'
+    *> parseChar 'a' *> parseChar 'd' *> parseChar 'e' *> parseChar 'r' *>
+    parseChar '\"' *> skipAll *> parseChar ':' *> skipAll *> parseChar '{'
+    *> skipAll *> parseChar '\"' *> parseChar 't' *> parseChar 'i' *>
+    parseChar 't' *> parseChar 'l' *> parseChar 'e' <* parseChar '\"' *>
+    skipAll *> parseChar ':' *> skipAll *> parseStringQuoted <* skipAll
+
+parserHeaderAuthor :: Parser (Maybe String)
+parserHeaderAuthor = skipAll *> parseChar ',' *> parseAuthor
+
+parserHeaderDate :: Parser (Maybe String)
+parserHeaderDate = skipAll *> parseDate <* skipAll
+    <* parseChar '}'
+
 parserJsonHeader :: Parser ParserValue
-parserJsonHeader = do
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 'h'
-    _ <- parseChar 'e'
-    _ <- parseChar 'a'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar 'r'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    _ <- parseChar '{'
-    _ <- skipAll
-    _ <- parseChar '\"'
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'l'
-    _ <- parseChar 'e'
-    _ <- parseChar '\"'
-    _ <- skipAll
-    _ <- parseChar ':'
-    _ <- skipAll
-    title <- parseStringQuoted
-    _ <- parseChar ','
-    author <- parseAuthor
-    date <- parseDate
-    _ <- skipAll
-    _ <- parseChar '}'
-    return $ ParserHead title author date
+parserJsonHeader = ParserHead <$> parseHeaderTitle <*> parserHeaderAuthor
+    <*> parserHeaderDate
 
 parseItalic :: Parser String
 parseItalic = skipAll *> parseChar '{' *> skipAll *> parseChar '\"' *>
@@ -327,14 +180,8 @@ parseJsonString :: Parser ParserValue
 parseJsonString = ParserString <$> parseString <* skipAll
 
 parserJsonObject :: Parser ParserValue
-parserJsonObject = do
-  _ <- parseChar '{'
-  skipAll
-  pairs <- parseCommaSeparated parseJsonValue
-  skipAll
-  _ <- parseChar '}'
-  skipAll
-  return $ ParserObject pairs
+parserJsonObject = ParserObject <$> (skipAll *> parseChar '{' *> skipAll *>
+    parseCommaSeparated parseJsonValue <* skipAll <* parseChar '}')
 
 -- Complete JSON value parser
 parseJsonValue :: Parser ParserValue
