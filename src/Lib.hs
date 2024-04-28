@@ -15,11 +15,9 @@ module Lib
 
 import Parser
 import XmlParser
-<<<<<<< Updated upstream
-=======
 -- import OutputMarkdown ( writeMarkdownFile )
-import OutputXml (writeXmlFile)
->>>>>>> Stashed changes
+-- import OutputXml (writeXmlFile)
+import OutputJson
 import JsonParser
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
@@ -49,20 +47,21 @@ sendToParser :: String -> Info -> Format -> IO ()
 sendToParser file info format =
     case format of
         JSON -> case runParser parseAllType file of
-            Just (parsedJson, remaining) -> exitSuccess
-                -- writeJsonFile (outputFile info) parsedJson
+            Just (parsedJson, _) -> writeJsonFile (outputFile info) parsedJson
+                >> exitSuccess
             Nothing -> putStrLn "Error: Invalid JSON file"
                 >> exitWith (ExitFailure 84)
-        XML -> case runParser parseAllType file of
-            Just (parsedXml, remaining) ->
-                writeXmlFile (outputFile info) parsedXml
-            Nothing -> putStrLn "Error: Invalid XML file"
-                >> exitWith (ExitFailure 84)
-        Markdown -> case runParser parseAllType file of
-            Just (parsedMarkdown, remaining) -> exitSuccess
-                -- writeMarkdownFile (outputFile info) parsedMarkdown
-            Nothing -> putStrLn "Error: Invalid Markdown file"
-                >> exitWith (ExitFailure 84)
+        -- XML -> case runParser parseAllType file of
+        --     -- Just (parsedXml, remaining) ->
+        --         -- writeXmlFile (outputFile info) parsedXml
+        --     Nothing -> putStrLn "Error: Invalid XML file"
+        --         >> exitWith (ExitFailure 84)
+        -- Markdown -> case runParser parseAllType file of
+        --     Just (parsedMarkdown, remaining) -> exitSuccess
+        --         -- writeMarkdownFile (outputFile info) parsedMarkdown
+        --     Nothing -> putStrLn "Error: Invalid Markdown file"
+        --         >> exitWith (ExitFailure 84)
+        _ -> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
@@ -71,15 +70,6 @@ parseFile (Just file) info | isNothing (inputFormat info) =
 parseFile (Just file) info = -- will send file to functions, but for now, im just using exitSuccess as a placeholder
   case outputFormat info of
     Nothing -> exitWith (ExitFailure 84)
-    Just JSON -> case runParser parseAllType file of
-        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
-        Nothing -> putStrLn "Error: Invalid JSON file"
-        >> exitWith (ExitFailure 84)
-    Just XML -> case runParser parseAllType file of
-        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
-        Nothing -> putStrLn "Error: Invalid XML file"
-        >> exitWith (ExitFailure 84)
-    Just Markdown -> case runParser parseAllType file of
-        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
-        Nothing -> putStrLn "Error: Invalid Markdown file"
-        >> exitWith (ExitFailure 84)
+    _ -> sendToParser file info (fromJust $ inputFormat info)
+    where fromJust (Just a) = a
+          fromJust Nothing = error "fromJust: Nothing"
