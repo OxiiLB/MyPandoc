@@ -58,19 +58,19 @@ jsonConverter file info = case runParser parseAllType file of
     Nothing -> putStrLn "Error: Invalid file"
         >> exitWith (ExitFailure 84)
 
--- markdownConverter :: String -> Info -> IO ()
--- markdownConverter file info = case runParser parseAllType file of
---     Just (parsedMarkdown, remaining) -> writeMarkdownFile (outputFile info) parsedMarkdown
---         >> exitSuccess
---     Nothing -> putStrLn "Error: Invalid Markdown file"
---         >> exitWith (ExitFailure 84)
+markdownConverter :: String -> Info -> IO ()
+markdownConverter file info = case runParser parseAllType file of
+    Just (parsedMarkdown, remaining) -> writeMarkdownFile (outputFile info) parsedMarkdown
+        >> exitSuccess
+    Nothing -> putStrLn "Error: Invalid Markdown file"
+        >> exitWith (ExitFailure 84)
 
 sendToParser :: String -> Info -> Format -> IO ()
 sendToParser file info format =
     case format of
         JSON -> jsonConverter file info
         XML -> xmlConverter file info
-        -- Markdown -> markdownConverter file info
+        Markdown -> markdownConverter file info
         _ -> putStrLn "type ./mypandoc -help" >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
