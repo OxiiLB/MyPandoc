@@ -40,7 +40,6 @@ jobs:
     name: check_coding_style
     container:
       image: ghcr.io/epitech/coding-style-checker:latest
-    needs: [check_lambdananas]
     steps:
 
       - name: Checkout GH repository
