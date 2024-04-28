@@ -27,20 +27,9 @@ parseString = many (parseAnyChar
 parseDate :: Parser (Maybe String)
 parseDate = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'd'
-    _ <- parseChar 'a'
-    _ <- parseChar 't'
-    _ <- parseChar 'e'
-    _ <- parseChar '>'
+    _ <- parseStr "<date>"
     date <- parseString
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'd'
-    _ <- parseChar 'a'
-    _ <- parseChar 't'
-    _ <- parseChar 'e'
-    _ <- parseChar '>'
+    _ <- parseStr "</date>"
     _ <- skipAll
     return $ Just date
 
@@ -48,88 +37,48 @@ parseDate = do
 parseAuthor :: Parser (Maybe String)
 parseAuthor = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'a'
-    _ <- parseChar 'u'
-    _ <- parseChar 't'
-    _ <- parseChar 'h'
-    _ <- parseChar 'o'
-    _ <- parseChar 'r'
-    _ <- parseChar '>'
+    _ <- parseStr "<author>"
     author <- parseString
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'a'
-    _ <- parseChar 'u'
-    _ <- parseChar 't'
-    _ <- parseChar 'h'
-    _ <- parseChar 'o'
-    _ <- parseChar 'r'
-    _ <- parseChar '>'
+    _ <- parseStr "</author>"
     return $ Just author
 
 -- skip document
 skipDocument :: Parser ()
 skipDocument = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'd'
-    _ <- parseChar 'o'
-    _ <- parseChar 'c'
-    _ <- parseChar 'u'
-    _ <- parseChar 'm'
-    _ <- parseChar 'e'
-    _ <- parseChar 'n'
-    _ <- parseChar 't'
-    _ <- parseChar '>'
+    _ <- parseStr "<document>"
+    _ <- skipAll
+    return ()
+
+skipEndHeader :: Parser ()
+skipEndHeader = do
+    _ <- skipAll
+    _ <- parseStr "</header>"
     _ <- skipAll
     return ()
 
 -- Parse header of the Xml file
 parseXmlHeader :: Parser ParserValue
 parseXmlHeader = do
-    _ <- trace "parseHeaderBegin\n" skipDocument
+    _ <- skipDocument
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'h'
-    _ <- parseChar 'e'
-    _ <- parseChar 'a'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar 'r'
-    _ <- parseChar ' '
-    _ <- parseChar 't'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'l'
-    _ <- parseChar 'e'
-    _ <- parseChar '='
+    _ <- parseStr "<header title="
     title <- parseStringQuoted
     _ <- parseChar '>'
     author <- parseAuthor
     date <- parseDate
+    _ <- skipEndHeader
     return $ ParserHead title author date
 
 -- Parse code in the body of the Xml file
 parseCode :: Parser ParserValue
 parseCode = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar '>'
+    _ <- parseStr "<code>"
     _ <- skipAll
     code <- parseString
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'c'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'e'
-    _ <- parseChar '>'
+    _ <- parseStr "</code>"
     _ <- skipAll
     return $ ParserCode code
 
@@ -137,26 +86,11 @@ parseCode = do
 parseItalic :: Parser ParserValue
 parseItalic = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'a'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 'c'
-    _ <- parseChar '>'
+    _ <- parseStr "<italic>"
     _ <- skipAll
     italic <- parseString
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'i'
-    _ <- parseChar 't'
-    _ <- parseChar 'a'
-    _ <- parseChar 'l'
-    _ <- parseChar 'i'
-    _ <- parseChar 'c'
-    _ <- parseChar '>'
+    _ <- parseStr "</italic>"
     _ <- skipAll
     return $ ParserItalic italic
 
@@ -164,22 +98,11 @@ parseItalic = do
 parseBold :: Parser ParserValue
 parseBold = do
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'l'
-    _ <- parseChar 'd'
-    _ <- parseChar '>'
+    _ <- parseStr "<bold>"
     _ <- skipAll
     bold <- parseString
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'l'
-    _ <- parseChar 'd'
-    _ <- parseChar '>'
+    _ <- parseStr "</bold>"
     _ <- skipAll
     return $ ParserBold bold
 
@@ -227,35 +150,14 @@ parseBold = do
 --     return $ ParserImage (link, ParserParagraph []) --------------------------------- idk
 
 -- Parse paragraphs in the body of the Xml file
-parserXmlParagraph :: Parser ParserValue
-parserXmlParagraph = do
-    _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'p'
-    _ <- parseChar 'a'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'g'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'p'
-    _ <- parseChar 'h'
-    _ <- parseChar '>'
+parseXmlParagraph :: Parser ParserValue
+parseXmlParagraph = do
+    _ <- trace "parsing paragraph..." skipAll
+    _ <- parseStr "<paragraph>"
     _ <- skipAll
     paragraph <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'p'
-    _ <- parseChar 'a'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'g'
-    _ <- parseChar 'r'
-    _ <- parseChar 'a'
-    _ <- parseChar 'p'
-    _ <- parseChar 'h'
-    _ <- parseChar '>'
+    _ <- parseStr "</paragraph>"
     return $ ParserParagraph paragraph
 
 -- Parse code block in the body of the Xml file
@@ -274,7 +176,7 @@ parserXmlParagraph = do
 --     _ <- parseChar 'k'
 --     _ <- parseChar '>'
 --     _ <- skipAll
---     paragraph <- parserXmlParagraph
+--     paragraph <- parseXmlParagraph
 --     return $ ParserCodeBlock []
 
 -- Parse list in the body of the Xml file
@@ -288,7 +190,7 @@ parserXmlParagraph = do
 --     _ <- parseChar 't'
 --     _ <- parseChar '>'
 --     _ <- skipAll
---     paragraph <- parserXmlParagraph
+--     paragraph <- parseXmlParagraph
 --     return $ ParserArray []
 
 -- Parse body of the Xml file
@@ -302,32 +204,25 @@ parserXmlParagraph = do
 --     _ <- parseChar 'y'
 --     _ <- parseChar '>'
 --     section <- parseSection
---     paragraph <- parserXmlParagraph
+--     paragraph <- parseXmlParagraph
 --     return $ ParserBody []
 
-parserXmlBody :: Parser ParserValue
-parserXmlBody = do
-    _ <- trace "parseBodyBegin\n" skipAll
-    _ <- parseChar '<'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'y'
-    _ <- trace "parseBody\n" parseChar '>'
-    _ <- skipAll
+parseXmlBody :: Parser ParserValue
+parseXmlBody = do
+    _ <- parseStr "<body>"
+    _ <-  skipAll
     body <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
     _ <- skipAll
-    _ <- parseChar '<'
-    _ <- parseChar '/'
-    _ <- parseChar 'b'
-    _ <- parseChar 'o'
-    _ <- parseChar 'd'
-    _ <- parseChar 'y'
-    _ <- parseChar '>'
+    _ <- parseStr "</body>"
+    _ <- skipAll
+    _ <- parseStr "</Document>"
     return $ ParserBody body
+
+parseXmlString :: Parser ParserValue
+parseXmlString = ParserString <$> parseString <* skipAll
 
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
-parseXmlValue = skipAll *> parseXmlHeader <|> parserXmlBody <|> parseCode <|>
-    parseItalic <|> parseBold <|> parserXmlParagraph -- <|>  parseLink <|> parseImage <|>
-    -- parserXmlParagraph <|> parseCodeBlock <|> parseList
+parseXmlValue = skipAll *>  parseXmlBody <|> parseXmlHeader <|> parseCode <|>
+    parseItalic <|> parseBold <|> parseXmlParagraph <|> parseXmlString -- <|>  parseLink <|> parseImage <|>
+    -- parseXmlParagraph <|> parseCodeBlock <|> parseList
