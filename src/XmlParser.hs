@@ -12,10 +12,8 @@ module XmlParser
 
 import Control.Applicative (Alternative(..))
 import Parser
-import Control.Monad (void)
 import Data.List ()
 import Debug.Trace (trace)
-import JsonParser (parseJsonValue)
 
 parseString :: Parser String
 parseString = many (parseAnyChar

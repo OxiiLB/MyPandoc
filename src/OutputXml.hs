@@ -10,7 +10,6 @@ module OutputXml
     ) where
 
 import Parser ( ParserValue(..) )
-import Data.List ( intercalate )
 
 -- toXml :: ParserValue -> Int -> String
 -- toXml (ParserString s) _ = escapeXml s

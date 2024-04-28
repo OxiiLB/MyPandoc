@@ -14,10 +14,7 @@ module Lib
     ) where
 
 import Parser
-import JsonParser ( parseJsonValue )
 import XmlParser
-import OutputMarkdown ( writeMarkdownFile )
-import OutputXml (writeXmlFile)
 import JsonParser
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
@@ -70,14 +67,14 @@ parseFile (Just file) info = -- will send file to functions, but for now, im jus
   case outputFormat info of
     Nothing -> exitWith (ExitFailure 84)
     Just JSON -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> print $ show parsedJson
+        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
         Nothing -> putStrLn "Error: Invalid JSON file"
         >> exitWith (ExitFailure 84)
     Just XML -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> print $ show parsedJson
+        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
         Nothing -> putStrLn "Error: Invalid XML file"
         >> exitWith (ExitFailure 84)
     Just Markdown -> case runParser parseAllType file of
-        Just (parsedJson, remaining) -> print $ show parsedJson
+        Just (parsedJson, _) -> print (show parsedJson) >>= \_ -> exitSuccess
         Nothing -> putStrLn "Error: Invalid Markdown file"
         >> exitWith (ExitFailure 84)
