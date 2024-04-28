@@ -41,8 +41,6 @@ toJson (ParserArray items) level =
 toJson (ParserObject pairs) level =
     "{\n" ++ intercalate ",\n" (map (\v -> toJson v (level + 1)) pairs) ++ "\n" ++ replicate (level * 4) ' ' ++ "}"
 
-
-
 -- If no file path is provided, print in terminal instead
 writeJsonFile :: Maybe FilePath -> ParserValue -> IO ()
 writeJsonFile Nothing value = putStrLn (toJson value 0)

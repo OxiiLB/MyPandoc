@@ -46,8 +46,8 @@ parseJsonArray :: Parser ParserValue
 parseJsonArray = ParserArray <$> createJsonArray
 
 parseLinkUrl :: Parser String
-parseLinkUrl = skipAll *> parseStr "\"link\"" *> skipAll *>
-    parseChar ':' *> skipAll *> parseChar '{' *> skipAll *>
+parseLinkUrl = skipAll *> parseChar '{' *> skipAll *> parseStr "\"link\"" *>
+    skipAll *> parseChar ':' *> skipAll *> parseChar '{' *> skipAll *>
     skipAll *> parseStr "\"url\"" *> skipAll *> parseChar ':' *> skipAll *>
     parseStringQuoted <* skipAll
 
@@ -55,13 +55,13 @@ parseLinkContent :: Parser String
 parseLinkContent = skipAll *> parseChar ',' *>
     skipAll *> parseStr "\"content\"" *> skipAll *> parseChar ':' *> skipAll *>
     parseChar '[' *> skipAll *> parseStringQuoted <* skipAll <* parseChar ']'
-    <* skipAll <* parseChar '}'
+    <* skipAll <* parseChar '}' <* skipAll <* parseChar '}'
 
 parserJsonLink :: Parser ParserValue
 parserJsonLink = ParserLink <$> parseLinkUrl <*> parseLinkContent
 
 parseImageUrl :: Parser String
-parseImageUrl = skipAll *> parseStr "\"image\"" *>
+parseImageUrl = skipAll *> parseChar '{' *> skipAll *> parseStr "\"image\"" *>
     skipAll *> parseChar ':' *> skipAll *> parseChar '{' *> skipAll *>
     skipAll *> parseStr "\"url\"" *> skipAll *> parseChar ':' *> skipAll *>
     parseStringQuoted <* skipAll
@@ -70,7 +70,7 @@ parseImageAlt :: Parser String
 parseImageAlt = skipAll *> parseChar ',' *> skipAll *>
     parseStr "\"alt\"" *> skipAll *> parseChar ':' *> skipAll *> parseChar '['
     *> skipAll *> parseStringQuoted <* skipAll <* parseChar ']' <* skipAll <*
-    parseChar '}'
+    parseChar '}' <* skipAll <* parseChar '}'
 
 parserJsonImage :: Parser ParserValue
 parserJsonImage = ParserImage <$> parseImageUrl <*> parseImageAlt
@@ -81,27 +81,29 @@ parserJsonParagraph = ParserParagraph <$> (skipAll *> parseChar '[' *>
     <* parseChar ']')
 
 parserJsonList :: Parser ParserValue
-parserJsonList = ParserList <$> (skipAll *> parseStr "\"list\"" *>
-    skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll
-    *> parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']')
+parserJsonList = ParserList <$> (parseChar '{' *> skipAll *>
+    parseStr "\"list\"" *> skipAll *> parseChar ':' *> skipAll *> parseChar '['
+    *> skipAll *> parseCommaSeparated parseJsonValue <* skipAll <*
+    parseChar ']' <* skipAll <* parseChar '}')
 
 parserJsonCodeBlock :: Parser ParserValue
-parserJsonCodeBlock = ParserCodeBlock <$> (skipAll *> parseStr "\"codeblock\""
-    *> skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll *>
-    parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']' <* skipAll)
+parserJsonCodeBlock = ParserCodeBlock <$> (parseChar '{' *>
+    skipAll *> parseStr "\"codeblock\"" *> skipAll *> parseChar ':' *> skipAll
+    *> parseChar '[' *> skipAll *> parseCommaSeparated parseJsonValue <*
+    skipAll <* parseChar ']' <* skipAll <* parseChar '}')
 
 parseSectionTitle :: Parser String
-parseSectionTitle = skipAll *> parseStr "\"section\"" *>
-    skipAll *> parseChar ':' *> skipAll *> parseChar '{' *>
-    skipAll *> parseStr "\"title\"" *> skipAll *> parseChar ':' *> skipAll *>
-    parseStringQuoted <* skipAll
+parseSectionTitle = skipAll *> parseChar '{' *> skipAll *>
+    parseStr "\"section\"" *> skipAll *> parseChar ':' *> skipAll *>
+    parseChar '{' *> skipAll *> parseStr "\"title\"" *> skipAll *>
+    parseChar ':' *> skipAll *> parseStringQuoted <* skipAll
 
 parseContentSection :: Parser [ParserValue]
 parseContentSection = skipAll *> parseChar ',' *> skipAll *>
     parseStr "\"content\"" *>
     skipAll *> parseChar ':' *> skipAll *> parseChar '[' *> skipAll *>
     parseCommaSeparated parseJsonValue <* skipAll <* parseChar ']' <* skipAll
-    <* skipAll <* parseChar '}'
+    <* skipAll <* parseChar '}' <* skipAll <* parseChar '}'
 
 parserJsonSection :: Parser ParserValue
 parserJsonSection = ParserSection <$> parseSectionTitle <*> parseContentSection

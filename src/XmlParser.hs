@@ -14,6 +14,7 @@ import Control.Applicative (Alternative(..))
 import Parser
 import Data.List ()
 import Debug.Trace (trace)
+import Text.ParserCombinators.ReadP (skipMany)
 
 parseString :: Parser String
 parseString = many (parseAnyChar
@@ -50,24 +51,31 @@ skipDocument = do
     _ <- skipAll
     return ()
 
+skipEndDocument :: Parser ()
+skipEndDocument = do
+    _ <- skipAll
+    _ <- parseStr "</document>"
+    _ <- skipAll
+    return ()
+
 skipEndHeader :: Parser ()
 skipEndHeader = do
-    _ <- skipAll
+    _ <- trace "skipeEndHeaderBegin\n" skipAll
     _ <- parseStr "</header>"
-    _ <- skipAll
+    _ <- trace "skipeEndHeaderEnd\n" skipAll
     return ()
 
 -- Parse header of the Xml file
 parseXmlHeader :: Parser ParserValue
 parseXmlHeader = do
-    _ <- skipDocument
+    _ <- trace "headerBegin\n" skipDocument
     _ <- skipAll
     _ <- parseStr "<header title="
     title <- parseStringQuoted
     _ <- parseChar '>'
     author <- parseAuthor
     date <- parseDate
-    _ <- skipEndHeader
+    _ <- trace "HeaderEnd\n" skipEndHeader
     return $ ParserHead title author date
 
 -- Parse code in the body of the Xml file
@@ -209,13 +217,13 @@ parseXmlParagraph = do
 
 parseXmlBody :: Parser ParserValue
 parseXmlBody = do
-    _ <- parseStr "<body>"
-    _ <-  skipAll
+    _ <- trace "bodyBegin\n" parseStr "<body>"
+    _ <- skipAll
     body <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
     _ <- skipAll
     _ <- parseStr "</body>"
     _ <- skipAll
-    _ <- parseStr "</Document>"
+    _ <- skipEndDocument
     return $ ParserBody body
 
 parseXmlString :: Parser ParserValue
@@ -223,6 +231,6 @@ parseXmlString = ParserString <$> parseString <* skipAll
 
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
-parseXmlValue = skipAll *>  parseXmlBody <|> parseXmlHeader <|> parseCode <|>
+parseXmlValue = skipAll *> parseXmlHeader <|> parseXmlBody <|> parseCode <|>
     parseItalic <|> parseBold <|> parseXmlParagraph <|> parseXmlString -- <|>  parseLink <|> parseImage <|>
     -- parseXmlParagraph <|> parseCodeBlock <|> parseList
