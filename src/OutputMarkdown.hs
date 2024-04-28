@@ -6,11 +6,11 @@
 --}
 
 module OutputMarkdown
-    ( writeMarkdownFile
+    ( -- writeMarkdownFile
     ) where
 
-import Parser ( ParserValue(..) )
-import Data.List ( intercalate )
+-- import Parser ( ParserValue(..) )
+-- import Data.List ( intercalate )
 
 -- toMarkdown :: ParserValue -> Int -> String
 -- toMarkdown (ParserString s) _ = "---\n" ++ s ++ "\n---\n"
@@ -21,6 +21,6 @@ import Data.List ( intercalate )
 --         ++ toMarkdown v (level + 1)) obj
 
 
-writeMarkdownFile :: Maybe FilePath -> ParserValue -> IO ()
-writeMarkdownFile Nothing _ = putStrLn "No file path provided."
+-- writeMarkdownFile :: Maybe FilePath -> ParserValue -> IO ()
+-- writeMarkdownFile Nothing _ = putStrLn "No file path provided."
 -- writeMarkdownFile (Just path) value = writeFile path (toMarkdown value 0)
