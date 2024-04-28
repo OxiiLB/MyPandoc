@@ -19,6 +19,7 @@ module Parser
     , parseStringQuoted
     , skipAll
     , parseCommaSeparated
+    , parseStr
     , Parser(..)
     , ParserValue(..)
     ) where
@@ -76,6 +77,11 @@ parseChar c = Parser $ \s -> case s of
     (x:xs) -> if x == c
               then Just (x, xs)
               else Nothing
+
+parseStr :: String -> Parser String
+parseStr str = Parser $ \s -> case runParser (mapM parseChar str) s of
+    Nothing -> Nothing
+    Just (a, rest) -> Just (a, rest)
 
 parseAnyChar :: String -> Parser Char
 parseAnyChar cs = Parser $ \s -> case s of
