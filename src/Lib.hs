@@ -23,6 +23,7 @@ import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
 import Control.Applicative (Alternative(..))
+import GHC.IO.Device (RawIO(write))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
@@ -47,12 +48,13 @@ sendToParser :: String -> Info -> Format -> IO ()
 sendToParser file info format =
     case format of
         JSON -> case runParser parseAllType file of
-            Just (parsedJson, _) -> print (show parsedJson)
+            Just (parsedJson, _) -> writeJsonFile (outputFile info) parsedJson
                 >> exitSuccess
             Nothing -> putStrLn "Error: Invalid JSON file"
                 >> exitWith (ExitFailure 84)
         XML -> case runParser parseAllType file of
             Just (parsedXml, _) -> writeXmlFile (outputFile info) parsedXml
+                >> exitSuccess
             Nothing -> putStrLn "Error: Invalid XML file"
                 >> exitWith (ExitFailure 84)
         -- Markdown -> case runParser parseAllType file of
