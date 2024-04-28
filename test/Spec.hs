@@ -7,6 +7,7 @@
 import Test.HUnit
 import Parser
 import JsonParser
+import XmlParser
 
 -- parseCharTest
 testParseChar1:: Test
@@ -167,7 +168,8 @@ testParseJsonSection1 = TestCase (assertEqual "for parseJsonSection,"
 
 testParseJsonSection2:: Test
 testParseJsonSection2 = TestCase (assertEqual "for parseJsonSection,"
-    (runParser parserJsonSection input) (Nothing))
+    (runParser parserJsonSection input) (Just (ParserSection "section"
+    [ParserString "content"],"")))
   where
     input = "{\"section\":{\"title\":\"section\",\"content\":[\"content\"]}}"
 
@@ -204,10 +206,31 @@ testParseJsonValue2 = TestCase (assertEqual "for parseJsonValue,"
 
 testParseJsonValue3:: Test
 testParseJsonValue3 = TestCase (assertEqual "for parseJsonValue,"
-    (runParser parseJsonValue input) (Just (ParserObject [ParserSection
-    "section" [ParserString "content"]],"")))
+    (runParser parseJsonValue input) (Just (ParserSection "section"
+    [ParserString "content"],"")))
   where
     input = "{\"section\":{\"title\":\"section\",\"content\":[\"content\"]}}"
+
+-- testParseXmlValue
+testParseXmlValue1:: Test
+testParseXmlValue1 = TestCase (assertEqual "for parseXmlValue,"
+    (runParser parseXmlValue input) (Just (ParserString "","\"string\"")))
+  where
+    input = "\"string\""
+
+testParseXmlValue2:: Test
+testParseXmlValue2 = TestCase (assertEqual "for parseXmlValue,"
+    (runParser parseXmlValue input) (Just (ParserParagraph
+    [ParserString "string"], "")))
+  where
+    input = "<paragraph>string</paragraph>"
+
+testParseXmlValue3:: Test
+testParseXmlValue3 = TestCase (assertEqual "for parseXmlValue,"
+    (runParser parseXmlValue input) (Just (ParserObject
+    [ParserSection "section" [ParserString "content"]],"")))
+  where
+    input = "<document><section title=\"section\">content</section></document>"
 
 -- tests List
 parseCharTests :: Test
@@ -254,12 +277,17 @@ parseJsonHeaderTests = TestList [testParseJsonHeader1, testParseJsonHeader2]
 parseJsonValueTests :: Test
 parseJsonValueTests = TestList [testParseJsonValue1, testParseJsonValue2,
     testParseJsonValue3]
+  
+parseXmlValueTests :: Test
+parseXmlValueTests = TestList [testParseXmlValue1, testParseXmlValue2,
+    testParseXmlValue3]
 
 tests :: Test
 tests = TestList [parseCharTests, parseAnyCharTests, parseStrTests,
     parseStringQuotedTests, parseOrTests, parseAndTests, parseAndWithTests,
     parseManyTests, parseIntTests, parseUIntTests, parseTupleTests,
-    parseJsonSectionTests, parseJsonHeaderTests, parseJsonValueTests]
+    parseJsonSectionTests, parseJsonHeaderTests, parseJsonValueTests,
+    parseXmlValueTests]
 
 main :: IO Counts
 main = runTestTT tests
