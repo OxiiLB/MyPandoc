@@ -14,7 +14,6 @@ import Control.Applicative (Alternative(..))
 import Parser
 import Data.List ()
 import Debug.Trace (trace)
-import Text.ParserCombinators.ReadP (skipMany)
 
 parseString :: Parser String
 parseString = many (parseAnyChar
