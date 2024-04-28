@@ -42,21 +42,6 @@ parseAuthor = do
     _ <- parseStr "</author>"
     return $ Just author
 
--- skip document
-skipDocument :: Parser ()
-skipDocument = do
-    _ <- skipAll
-    _ <- parseStr "<document>"
-    _ <- skipAll
-    return ()
-
-skipEndDocument :: Parser ()
-skipEndDocument = do
-    _ <- skipAll
-    _ <- parseStr "</document>"
-    _ <- skipAll
-    return ()
-
 skipEndHeader :: Parser ()
 skipEndHeader = do
     _ <- trace "skipeEndHeaderBegin\n" skipAll
@@ -67,7 +52,6 @@ skipEndHeader = do
 -- Parse header of the Xml file
 parseXmlHeader :: Parser ParserValue
 parseXmlHeader = do
-    _ <- trace "headerBegin\n" skipDocument
     _ <- skipAll
     _ <- parseStr "<header title="
     title <- parseStringQuoted
@@ -159,12 +143,11 @@ parseBold = do
 -- Parse paragraphs in the body of the Xml file
 parseXmlParagraph :: Parser ParserValue
 parseXmlParagraph = do
-    _ <- trace "parsing paragraph..." skipAll
+    _ <- skipAll
     _ <- parseStr "<paragraph>"
     _ <- skipAll
-    paragraph <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
+    paragraph <- manyTill parseXmlString (parseStr "</paragraph>")
     _ <- skipAll
-    _ <- parseStr "</paragraph>"
     return $ ParserParagraph paragraph
 
 -- Parse code block in the body of the Xml file
@@ -200,36 +183,31 @@ parseXmlParagraph = do
 --     paragraph <- parseXmlParagraph
 --     return $ ParserArray []
 
--- Parse body of the Xml file
--- parseXmlBody :: Parser ParserValue
--- parseXmlBody = do
---     _ <- skipAll
---     _ <- parseChar '<'
---     _ <- parseChar 'b'
---     _ <- parseChar 'o'
---     _ <- parseChar 'd'
---     _ <- parseChar 'y'
---     _ <- parseChar '>'
---     section <- parseSection
---     paragraph <- parseXmlParagraph
---     return $ ParserBody []
-
 parseXmlBody :: Parser ParserValue
 parseXmlBody = do
-    _ <- trace "bodyBegin\n" parseStr "<body>"
+    _ <- parseStr "<body>"
+    _ <- trace "inbody" skipAll
+    body <- manyTill parseXmlValue (parseStr "</body>")
     _ <- skipAll
-    body <- (:) <$> parseXmlValue <*> many parseXmlValue <|> pure []
-    _ <- skipAll
-    _ <- parseStr "</body>"
-    _ <- skipAll
-    _ <- skipEndDocument
     return $ ParserBody body
 
 parseXmlString :: Parser ParserValue
 parseXmlString = ParserString <$> parseString <* skipAll
 
+manyTill :: Parser a -> Parser b -> Parser [a]
+manyTill p end = scan
+  where
+    scan = (end *> pure []) <|> ((:) <$> p <*> scan)
+
+parseXmlObject :: Parser ParserValue
+parseXmlObject = do
+    _ <- parseStr "<document>"
+    _ <- skipAll
+    pairs <- manyTill parseXmlValue (parseStr "</document>")
+    _ <- skipAll
+    return $ ParserObject pairs
+
 -- Complete Xml value parser
 parseXmlValue :: Parser ParserValue
-parseXmlValue = skipAll *> parseXmlHeader <|> parseXmlBody <|> parseCode <|>
-    parseItalic <|> parseBold <|> parseXmlParagraph <|> parseXmlString -- <|>  parseLink <|> parseImage <|>
-    -- parseXmlParagraph <|> parseCodeBlock <|> parseList
+parseXmlValue = skipAll *> parseXmlObject <|> parseXmlHeader <|> parseXmlBody
+    <|> parseXmlParagraph

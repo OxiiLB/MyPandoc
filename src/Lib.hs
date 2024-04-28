@@ -23,6 +23,7 @@ import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
 import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
 import Control.Applicative (Alternative(..))
+import GHC.IO.Device (RawIO(write))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
@@ -53,14 +54,15 @@ sendToParser file info format =
                 >> exitWith (ExitFailure 84)
         XML -> case runParser parseAllType file of
             Just (parsedXml, _) -> writeXmlFile (outputFile info) parsedXml
+                >> exitSuccess
             Nothing -> putStrLn "Error: Invalid XML file"
                 >> exitWith (ExitFailure 84)
         -- Markdown -> case runParser parseAllType file of
         --     Just (parsedMarkdown, remaining) -> exitSuccess
         --         -- writeMarkdownFile (outputFile info) parsedMarkdown
         --     Nothing -> putStrLn "Error: Invalid Markdown file"
-        --         >> exitWith (ExitFailure 84)
-        _ -> exitWith (ExitFailure 84)
+        --         >> exitWith (ExitFailure 84) 
+        _ -> putStrLn "zefzefez" >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
