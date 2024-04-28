@@ -114,14 +114,14 @@ parserJsonBody = ParserBody <$> (skipAll *> parseStr "\"body\"" *>
 parseDate :: Parser (Maybe String)
 parseDate = (Just <$> date) <|> pure Nothing
     where
-        date = skipAll *> parseStr "\"date\"" *> skipAll *> parseChar ':' *>
-            skipAll *> parseString <* skipAll
+        date = parseChar ',' *> skipAll *> parseStr "\"date\"" *> skipAll *>
+            parseChar ':' *> skipAll *> parseString
 
 parseAuthor :: Parser (Maybe String)
 parseAuthor = (Just <$> author) <|> pure Nothing
     where
-        author = skipAll *> parseStr "\"author\"" *> skipAll *>
-            parseChar ':' *> skipAll *> parseString <* skipAll <* parseChar ','
+        author = parseChar ',' *> skipAll *> parseStr "\"author\"" *>
+            skipAll *> parseChar ':' *> skipAll *> parseString
 
 parseHeaderTitle :: Parser String
 parseHeaderTitle = skipAll *> parseStr "\"header\"" *>
@@ -130,15 +130,21 @@ parseHeaderTitle = skipAll *> parseStr "\"header\"" *>
     skipAll *> parseChar ':' *> skipAll *> parseStringQuoted <* skipAll
 
 parserHeaderAuthor :: Parser (Maybe String)
-parserHeaderAuthor = skipAll *> parseChar ',' *> parseAuthor
+parserHeaderAuthor = skipAll *> parseAuthor
 
 parserHeaderDate :: Parser (Maybe String)
-parserHeaderDate = skipAll *> parseDate <* skipAll
-    <* parseChar '}'
+parserHeaderDate = skipAll *> parseDate
 
 parserJsonHeader :: Parser ParserValue
-parserJsonHeader = ParserHead <$> parseHeaderTitle <*> parserHeaderAuthor
-    <*> parserHeaderDate
+parserJsonHeader = do
+    title <- parseHeaderTitle
+    _ <- skipAll
+    author <- parserHeaderAuthor
+    _ <- skipAll
+    date <- parserHeaderDate
+    _ <- skipAll
+    _ <- parseChar '}'
+    return $ ParserHead title author date
 
 parseItalic :: Parser String
 parseItalic = skipAll *> parseChar '{' *> skipAll *> parseStr "\"italic\"" *>
