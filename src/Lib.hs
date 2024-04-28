@@ -30,7 +30,7 @@ data Format = JSON | XML | Markdown deriving (Show, Eq)
 data Info = Info {filePath :: Maybe String, inputFormat :: Maybe Format, outputFormat :: Maybe Format, outputFile :: Maybe String} deriving Show
 
 parseAllType :: Parser ParserValue
-parseAllType = parseJsonValue  <|> parseXmlValue
+parseAllType = parseJsonValue  <|> parseXmlValue -- <|> parseMarkdownValue
 
 defaultInfo :: Info
 defaultInfo = Info {filePath = Nothing, inputFormat = Nothing,
