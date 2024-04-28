@@ -61,7 +61,7 @@ markdownConverter :: String -> Info -> IO ()
 markdownConverter file info = case runParser parseAllType file of
     Just (parsedMarkdown, _) -> writeMarkdownFile (outputFile info) parsedMarkdown
         >> exitSuccess
-    Nothing -> putStrLn "Error: Invalid Markdown file"
+    Nothing -> putStrLn "Error: Invalid file"
         >> exitWith (ExitFailure 84)
 
 sendToParser :: String -> Info -> Format -> IO ()
