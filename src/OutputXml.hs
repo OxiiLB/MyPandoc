@@ -10,22 +10,27 @@ module OutputXml
     ) where
 
 import Parser ( ParserValue(..) )
-import Data.List ( intercalate )
 
 toXml :: ParserValue -> Int -> String
-toXml (ParserString s) _ = escapeXml s
-toXml (ParserArray arr) level =
-    "<array>\n" ++ indentedValues ++ "\n" ++
-        replicate (level * 4) ' ' ++ "</array>"
+toXml (ParserString s) indentLevel = replicate (indentLevel * 4) ' ' ++ escapeXml s ++ "\n"
+toXml (ParserItalic s) indentLevel = replicate (indentLevel * 4) ' ' ++ "<italic>" ++ escapeXml s ++ "</italic>\n"
+toXml (ParserBold s) indentLevel = replicate (indentLevel * 4) ' ' ++ "<bold>" ++ escapeXml s ++ "</bold>\n"
+toXml (ParserCode s) indentLevel = replicate (indentLevel * 4) ' ' ++ "<code>" ++ escapeXml s ++ "</code>\n"
+toXml (ParserLink url value) indentLevel = replicate (indentLevel * 4) ' ' ++ "<link url=\"" ++ url ++ "\">" ++ escapeXml value ++ "</link>\n"
+toXml (ParserImage url value) indentLevel = replicate (indentLevel * 4) ' ' ++ "<image url=\"" ++ url ++ "\">" ++ escapeXml value ++ "</image>\n"
+toXml (ParserList items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<list>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</list>\n"
+toXml (ParserCodeBlock items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<codeblock>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</codeblock>\n"
+toXml (ParserSection title items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<section title=\"" ++ escapeXml title ++ "\">\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</section>\n"
+toXml (ParserParagraph items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<paragraph>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</paragraph>\n"
+toXml (ParserHead title maybeAuthor maybeDate) indentLevel =
+    replicate (indentLevel * 4) ' ' ++ "<header title=\"" ++ escapeXml title ++ "\"" ++ authorAttr ++ dateAttr ++ "/>\n"
     where
-        indentedValues = concatMap (\v -> toXml v (level + 1)) arr
+         authorAttr = maybe "" (\author -> " author=\"" ++ escapeXml author ++ "\"") maybeAuthor
+         dateAttr = maybe "" (\date -> " date=\"" ++ escapeXml date ++ "\"") maybeDate
+toXml (ParserBody items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<body>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</body>\n"
+toXml (ParserArray items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<array>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</array>\n"
+toXml (ParserObject items) indentLevel = replicate (indentLevel * 4) ' ' ++ "<object>\n" ++ concatMap (\item -> toXml item (indentLevel + 1)) items ++ replicate (indentLevel * 4) ' ' ++ "</object>\n"
 
-toXml (ParserObject obj) level =
-    "<section>\n" ++ indentedPairs ++ "\n" ++
-        replicate (level * 4) ' ' ++ "</section>"
-    where
-        indentedPairs = concatMap (\(k, v) -> replicate ((level + 1) * 4) ' '
-            ++ "<" ++ k ++ ">" ++ toXml v (level + 1) ++ "</" ++ k ++ ">") obj
 
 escapeXml :: String -> String
 escapeXml = concatMap escapeChar
@@ -39,5 +44,5 @@ escapeXml = concatMap escapeChar
 
 
 writeXmlFile :: Maybe FilePath -> ParserValue -> IO ()
-writeXmlFile Nothing _ = putStrLn "No file path provided."
+writeXmlFile Nothing value = putStrLn $ toXml value 0
 writeXmlFile (Just path) value = writeFile path (toXml value 0)

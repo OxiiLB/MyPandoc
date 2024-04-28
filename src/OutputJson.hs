@@ -11,23 +11,37 @@ module OutputJson
 
 import Parser ( ParserValue(..) )
 import Data.List ( intercalate )
+import GHC.IO.Device (RawIO(write))
 
 toJson :: ParserValue -> Int -> String
 toJson (ParserString s) _ = "\"" ++ s ++ "\""
-toJson (ParserArray arr) level =
-    "[\n" ++ indentedValues ++ "\n" ++ replicate (level * 4) ' ' ++ "]"
-    where
-        indentedValues = intercalate ",\n" $ map
-            (\v -> replicate ((level + 1) * 4) ' ' ++ toJson v (level + 1)) arr
+toJson (ParserItalic s) _ = "*_" ++ s ++ "_*"
+toJson (ParserBold s) _ = "**" ++ s ++ "**"
+toJson (ParserCode s) _ = "`" ++ s ++ "`"
+toJson (ParserLink url content) _ = "[" ++ content ++ "](" ++ url ++ ")"
+toJson (ParserImage url alt) _ = "![" ++ alt ++ "](" ++ url ++ ")"
+toJson (ParserList items) level =
+    replicate (level * 4) ' ' ++ "- " ++ intercalate "\n" (map (\v -> toJson v 0) items)
+toJson (ParserCodeBlock lines) level =
+    replicate (level * 4) ' ' ++ "```\n" ++ intercalate "\n" (map (\v -> toJson v 0) lines) ++ "\n" ++ replicate (level * 4) ' ' ++ "```"
+toJson (ParserSection title content) level =
+    replicate (level * 4) ' ' ++ "## " ++ title ++ "\n" ++ intercalate "\n" (map (\v -> toJson v (level + 1)) content)
+toJson (ParserParagraph content) level =
+    replicate (level * 4) ' ' ++ intercalate "\n" (map (\v -> toJson v 0) content)
+toJson (ParserHead title author date) _ =
+    "{\n" ++
+    replicate 4 ' ' ++ "\"title\": " ++ toJson (ParserString title) 0 ++ ",\n" ++
+    replicate 4 ' ' ++ "\"author\": " ++ maybe "null" (\a -> toJson (ParserString a) 0) author ++ ",\n" ++
+    replicate 4 ' ' ++ "\"date\": " ++ maybe "null" (\d -> toJson (ParserString d) 0) date ++ "\n" ++
+    "}\n"
+toJson (ParserBody content) level =
+    intercalate "\n" (map (\v -> toJson v level) content)
+toJson (ParserArray items) level =
+    "[\n" ++ intercalate ",\n" (map (\v -> toJson v (level + 1)) items) ++ "\n" ++ replicate (level * 4) ' ' ++ "]"
+toJson (ParserObject pairs) level =
+    "{\n" ++ intercalate ",\n" (map (\v -> toJson v (level + 1)) pairs) ++ "\n" ++ replicate (level * 4) ' ' ++ "}"
 
-toJson (ParserObject obj) level =
-    "{\n" ++ indentedPairs ++ "\n" ++ replicate (level * 4) ' ' ++ "}"
-    where
-        indentedPairs = intercalate ",\n" $ map (\(k, v) ->
-            replicate((level + 1) * 4) ' ' ++ "\"" ++ k ++ "\": " ++
-                toJson v (level + 1)) obj
-
-
+-- If no file path is provided, print in terminal instead
 writeJsonFile :: Maybe FilePath -> ParserValue -> IO ()
-writeJsonFile Nothing _ = putStrLn "No file path provided."
+writeJsonFile Nothing value = putStrLn (toJson value 0)
 writeJsonFile (Just path) value = writeFile path (toJson value 0)

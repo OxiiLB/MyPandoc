@@ -14,21 +14,23 @@ module Lib
     ) where
 
 import Parser
-import JsonParser ( parseJsonValue )
-import XmlParser ()
-import OutputJson ( writeJsonFile )
-import OutputMarkdown ( writeMarkdownFile )
+import XmlParser
+-- import OutputMarkdown ( writeMarkdownFile )
 import OutputXml (writeXmlFile)
+import OutputJson
+import JsonParser
 import Data.Maybe(isNothing)
 import Data.List (isSuffixOf)
-import System.Exit (exitWith, ExitCode(ExitFailure))
+import System.Exit (exitWith, ExitCode(ExitFailure), exitSuccess)
+import Control.Applicative (Alternative(..))
+import GHC.IO.Device (RawIO(write))
 
 data Format = JSON | XML | Markdown deriving (Show, Eq)
 
 data Info = Info {filePath :: Maybe String, inputFormat :: Maybe Format, outputFormat :: Maybe Format, outputFile :: Maybe String} deriving Show
 
 parseAllType :: Parser ParserValue
-parseAllType = parseJsonValue -- <|> parseXmlValue <|> parseMarkdownValue
+parseAllType = parseJsonValue  <|> parseXmlValue
 
 defaultInfo :: Info
 defaultInfo = Info {filePath = Nothing, inputFormat = Nothing,
@@ -43,18 +45,32 @@ detectFormat (Just file)
     | otherwise = Nothing
 
 sendToParser :: String -> Info -> Format -> IO ()
-sendToParser file info format = case runParser parseAllType file of
-    Just (parsedData, _) -> case format of
-        JSON -> writeJsonFile (outputFile info) parsedData
-        XML -> writeXmlFile (outputFile info) parsedData
-        Markdown -> writeMarkdownFile (outputFile info) parsedData
-    Nothing -> exitWith (ExitFailure 84)
+sendToParser file info format =
+    case format of
+        JSON -> case runParser parseAllType file of
+            Just (parsedJson, _) -> writeJsonFile (outputFile info) parsedJson
+                >> exitSuccess
+            Nothing -> putStrLn "Error: Invalid JSON file"
+                >> exitWith (ExitFailure 84)
+        XML -> case runParser parseAllType file of
+            Just (parsedXml, _) -> writeXmlFile (outputFile info) parsedXml
+                >> exitSuccess
+            Nothing -> putStrLn "Error: Invalid XML file"
+                >> exitWith (ExitFailure 84)
+        -- Markdown -> case runParser parseAllType file of
+        --     Just (parsedMarkdown, remaining) -> exitSuccess
+        --         -- writeMarkdownFile (outputFile info) parsedMarkdown
+        --     Nothing -> putStrLn "Error: Invalid Markdown file"
+        --         >> exitWith (ExitFailure 84) 
+        _ -> putStrLn "zefzefez" >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
 parseFile (Just file) info | isNothing (inputFormat info) =
     parseFile (Just file) (info { inputFormat = detectFormat (filePath info) })
-parseFile (Just file) info =
-    case outputFormat info of
-        Nothing -> exitWith (ExitFailure 84)
-        Just format -> sendToParser file info format
+parseFile (Just file) info = -- will send file to functions, but for now, im just using exitSuccess as a placeholder
+  case outputFormat info of
+    Nothing -> exitWith (ExitFailure 84)
+    _ -> sendToParser file info (fromJust $ outputFormat info)
+    where fromJust (Just a) = a
+          fromJust Nothing = error "fromJust: Nothing"
