@@ -53,7 +53,7 @@ toXml (ParserArray items) indentLevel = replicate (indentLevel * 4) ' ' ++
     replicate (indentLevel * 4) ' ' ++ "</array>\n"
 toXml (ParserObject items) indentLevel = replicate (indentLevel * 4) ' ' ++
     "<document>\n" ++ innerXml items (indentLevel + 1) ++
-    replicate (indentLevel * 4) ' ' ++ "</document>\n"
+    replicate (indentLevel * 4) ' ' ++ "</document>"
 
 innerXml :: [ParserValue] -> Int -> String
 innerXml items indentLevel = concatMap (\item -> toXml item indentLevel) items
