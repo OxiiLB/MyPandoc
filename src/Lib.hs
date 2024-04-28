@@ -29,7 +29,7 @@ data Format = JSON | XML | Markdown deriving (Show, Eq)
 data Info = Info {filePath :: Maybe String, inputFormat :: Maybe Format, outputFormat :: Maybe Format, outputFile :: Maybe String} deriving Show
 
 parseAllType :: Parser ParserValue
-parseAllType = parseJsonValue  <|> parseXmlValue -- <|> parseMarkdownValue
+parseAllType = parseJsonValue  <|> parseXmlValue
 
 defaultInfo :: Info
 defaultInfo = Info {filePath = Nothing, inputFormat = Nothing,
@@ -72,6 +72,14 @@ sendToParser file info format =
         XML -> xmlConverter file info
         Markdown -> markdownConverter file info
 
+sendParser :: String -> Info -> IO ()
+sendParser file info = case outputFormat info of
+                Nothing -> putStrLn "type ./mypandoc -help"
+                    >> exitWith (ExitFailure 84)
+                _ -> sendToParser file info (fromJust $ outputFormat info)
+  where fromJust (Just a) = a
+        fromJust Nothing = error "error: Nothing"
+
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
 parseFile (Just file) info | isNothing (inputFormat info) =
@@ -80,9 +88,4 @@ parseFile (Just file) info | isNothing (inputFormat info) =
         in if detectedFormat /= inputFormat info
             then putStrLn "Given inputFormat doesn't match actual inputFormat"
                 >> exitWith (ExitFailure 84)
-            else case outputFormat info of
-                Nothing -> putStrLn "type ./mypandoc -help"
-                    >> exitWith (ExitFailure 84)
-                _ -> sendToParser file info (fromJust $ outputFormat info)
-  where fromJust (Just a) = a
-        fromJust Nothing = error "error: Nothing"
+            else sendParser file info
