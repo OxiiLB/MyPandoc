@@ -47,7 +47,7 @@ sendToParser :: String -> Info -> Format -> IO ()
 sendToParser file info format =
     case format of
         JSON -> case runParser parseAllType file of
-            Just (parsedJson, _) -> writeJsonFile (outputFile info) parsedJson
+            Just (parsedJson, _) -> print (show parsedJson)
                 >> exitSuccess
             Nothing -> putStrLn "Error: Invalid JSON file"
                 >> exitWith (ExitFailure 84)
@@ -59,8 +59,8 @@ sendToParser file info format =
         --     Just (parsedMarkdown, remaining) -> exitSuccess
         --         -- writeMarkdownFile (outputFile info) parsedMarkdown
         --     Nothing -> putStrLn "Error: Invalid Markdown file"
-        --         >> exitWith (ExitFailure 84)
-        _ -> exitWith (ExitFailure 84)
+        --         >> exitWith (ExitFailure 84) 
+        _ -> putStrLn "zefzefez" >> exitWith (ExitFailure 84)
 
 parseFile :: Maybe String -> Info -> IO ()
 parseFile Nothing _ = exitWith (ExitFailure 84)
